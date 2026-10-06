@@ -1275,7 +1275,7 @@ var EV = {}; EVENTS.forEach(function(e){ EV[e.id]=e; });
 function fresh(){
   return { v:2, phase:"landing", name:"", gender:"m", look:{skin:2,top:1,bot:0,hair:0,style:0}, uni:"unilag", inside:null, job:null, course:"cs", trait:"vibes",
     day:1, min:7*60, cash:25000, energy:100, food:80, fresh:90, vibes:70, prep:0, pop:10, rep:0, attended:0,
-    x:0, z:50, yaw:Math.PI, today:{}, flags:{}, seen:{}, log:[], ledger:[], chats:{}, order:[], trig:{}, muted:{}, results:null };
+    x:0, z:50, yaw:Math.PI, today:{}, flags:{}, seen:{}, home:"hostel", rentOwed:0, rentMiss:0, inv:{}, own:{}, log:[], ledger:[], chats:{}, order:[], trig:{}, muted:{}, results:null };
 }
 function load(){
   try {
@@ -1308,7 +1308,7 @@ function apply(fx, label){
   return d;
 }
 function ledger(amt,label){ S.ledger.unshift({ a:amt, l:label, d:S.day, m:Math.floor(S.min) }); if (S.ledger.length>60) S.ledger.length=60; }
-function studyEff(){ return 0.45+0.55*Math.min(S.energy,S.food)/100; }
+function studyEff(){ var o=S.own||{}; return (0.45+0.55*Math.min(S.energy,S.food)/100)*(1+(o.lamp?0.15:0)+(o.laptop?0.25:0)); }
 function repLabel(r){ if (r<=-20) return "Shady"; if (r<=-6) return "Iffy"; if (r<=5) return "Neutral"; if (r<=19) return "Solid"; return "Trusted"; }
 function pillsHTML(d){
   var out=[];
@@ -1366,6 +1366,7 @@ function passTime(m){
 function crossed(a,b,t){ return a<t && b>=t; }
 function schedule(a,b){
   if (S.day>DAYS) return;
+  jobTick(a,b);
   if (isWeekday(S.day)){
     [0,1].forEach(function(s){
       var L=lectureAt(S.day,s);
@@ -1496,6 +1497,7 @@ function placeActions(id){
   }
   else if (P.hostel){
     if (P.hostel!==S.gender) return [A({k:"lounge", label:"Wait at the visitors' lounge", mins:30, fx:{vibes:4}, text:"The porter watched you the whole time."})];
+    if (S.home!=="hostel") return [A({k:"oldroom", label:"Visit your old roommates", mins:60, daily:1, fx:{vibes:15,pop:2}, text:"They've already given your bed space to a squatter."})];
     var night = h>=20 || h<5;
     acts=[ night || S.energy<25
       ? A({k:"sleep", label:"Sleep till morning", hot:1, go:function(){ closeSheet(); endOfDay("bed"); return null; }})
@@ -1693,7 +1695,7 @@ function updatePlayer(dt){
   }
   moving = Math.hypot(fx,fz)>0.05;
   if (moving){
-    var sp=5.4*(S.energy<10?0.6:1);
+    var sp=5.4*(S.energy<10?0.6:1)*(S.own&&S.own.sneakers?1.15:1);
     var ox=S.x, oz=S.z;
     S.x+=fx*sp*dt; S.z+=fz*sp*dt; collide();
     if (autoPath && Math.hypot(S.x-ox,S.z-oz)<sp*dt*0.15){ autoPath=null; }
@@ -1872,7 +1874,7 @@ function updateActs(){
     var bestP=null, bd=3.4;
     if (ride){ items.push({ k:"s:", t:"🛑 Get down here", alt:true }); }
     else if (driving){ items.push({ k:"q:", t:"🅿️ Park and get out" }); }
-    else if (S.car && !S.inside && S.car.day===S.day && Math.hypot(S.car.x-S.x,S.car.z-S.z)<3.6){ items.push({ k:"c:", t:"🚗 Drive your car" }); }
+    else if (S.car && !S.inside && (S.car.owned||S.car.day===S.day) && Math.hypot(S.car.x-S.x,S.car.z-S.z)<3.6){ items.push({ k:"c:", t:"🚗 Drive your car" }); }
     if (ride || driving) {}
     else if (S.inside){ items.push({ k:"i:"+S.inside, t:"📋 Things to do in "+PLACE[S.inside].name }); items.push({ k:"x:", t:"🚪 Go outside", alt:true }); }
     else PLACES.forEach(function(P){ var d=Math.hypot(P.door[0]-S.x,P.door[1]-S.z); if (d<bd){ bd=d; bestP=P; } });
@@ -1961,14 +1963,15 @@ function endOfDay(kind){
   if (S.day>DAYS){ dayEnding=false; writeExams(); return; }
   var notes=[];
   if (S.prep>0) S.prep=Math.max(0,S.prep-(3+S.prep*0.06));
-  var gain = kind==="bed" ? 70 : (kind==="party" ? 40 : 35);
+  var gain = kind==="bed" ? homeSleep() : (kind==="party" ? 40 : 35);
   S.energy=clamp(S.energy+gain,0,energyCap());
   S.food=clamp(S.food-15,0,100); S.fresh=clamp(S.fresh-(kind==="passout"?25:10),0,100); S.vibes=clamp(S.vibes-5,0,100);
   if (kind==="passout"){ notes.push("You slept off outside. The mosquitoes had a party."); S.rep=clamp(S.rep-1,-50,50); }
   if (kind==="party") notes.push("You got back from The Joint at 1AM and woke up late.");
+  jobDayEnd(notes);
   S.inside=null; ride=null; driving=false; carV=0;
-  if (S.car){ S.car=null; notes.push("The rental car went back to the motor park."); }
-  if (kind!=="passout") teleport(hallId());
+  if (S.car && !S.car.owned){ S.car=null; notes.push("The rental car went back to the motor park."); }
+  if (kind!=="passout") teleport(homePlace());
   S.day++; S.min = kind==="party" ? 8*60+40 : 7*60; S.today={};
   notes.push("You woke up with "+Math.round(S.energy)+" energy.");
   save();
@@ -1979,12 +1982,14 @@ function startDay(){
   if (S.day===1){
     incoming("mum","Have you reached school? Call me when you settle down. Don't follow bad friends o ❤️",null,true);
     incoming("cls","Welcome to "+CRS().code+" 100L! Lectures hold at 8AM and 12PM, Monday to Friday, at the 1K Lecture Theatre.","Course Rep",true);
+    incoming("land","Welcome! Hostel rent is ₦1,500 a week, collected every Saturday morning. You can move to a lodge in town from the Home app.",null,true);
     deliver(EV.intro_room);
     setTimeout(function(){ toast("Walk with the joystick. Drag the screen to look around. Tap a building to walk there."); }, 4500);
   } else if (S.day>DAYS){
     incoming("cls","EXAMS TODAY at the 1K Lecture Theatre. Go there when you're ready. All the best! 🙏","Course Rep");
   } else {
     if (isWeekday(S.day)){ var a=lectureAt(S.day,0), b=lectureAt(S.day,1); incoming("cls","Good morning! Today: "+a.code+" at 8AM and "+b.code+" at 12PM, 1K Hall. Don't be late 🙏","Course Rep",true); }
+    if (dow(S.day)===5) payRent();
     if (S.day>=4 && !S.flags.sick && Math.random()<0.08){ S.flags.sick=1; S.energy=Math.min(S.energy,60); toast("🤒 You woke up with a fever. Your energy is capped at 60 until you see the nurse at the Health Centre."); }
     if (Math.random()<0.85) maybeEvent("am");
   }
@@ -2141,7 +2146,7 @@ var JOBS = [
   { id:"cook", n:"Kitchen helper", p:"cafe", h:[7,12], pay:550, perk:{food:20} },
   { id:"libasst", n:"Library assistant", p:"library", h:[9,17], pay:650, req:{prep:20}, perk:{prep:2} },
   { id:"tutor", n:"JAMB tutor", p:"library", h:[15,20], pay:1000, req:{prep:35}, perk:{prep:2} },
-  { id:"designer", n:"Freelance graphic designer", p:"library", h:[8,22], pay:1200, req:{prep:25,pop:20} },
+  { id:"designer", n:"Freelance graphic designer", p:"library", h:[8,22], pay:1200, req:{prep:25,own:"laptop"} },
   { id:"cleaner", n:"Hostel cleaner", p:"hall", h:[6,10], pay:500, perk:{rep:1} },
   { id:"usher", n:"Event usher", p:"lt", h:[14,20], pay:750, req:{rep:3} },
   { id:"runner", n:"Senate office runner", p:"senate", h:[8,17], pay:700, req:{rep:5} },
@@ -2159,6 +2164,7 @@ function jobReqText(j){
   var r=j.req, out=[];
   if (r.prep && S.prep<r.prep) out.push("readiness "+r.prep+"%");
   if (r.pop && S.pop<r.pop) out.push("popularity "+r.pop);
+  if (r.own && !(S.own&&S.own[r.own])) out.push("a laptop");
   if (r.rep && S.rep<r.rep) out.push("a "+repLabel(r.rep).toLowerCase()+" reputation");
   return out.length ? "Needs "+out.join(" and ") : "";
 }
@@ -2197,9 +2203,9 @@ function takeJob(id){
 }
 
 /* ---------- Interiors ---------- */
-var IN = {}, INSIDE_IDS = ["lt","library","cafe","sub","jaja","moremi","health","joint","chapel","mosque","senate"];
+var IN = {}, INSIDE_IDS = ["lt","library","cafe","sub","jaja","moremi","health","joint","chapel","mosque","senate","lodges"];
 (function(){
-  var dims={ lt:[22,16], library:[20,16], cafe:[18,14], sub:[20,14], jaja:[12,10], moremi:[12,10], health:[14,12], joint:[18,14], chapel:[14,18], mosque:[16,16], senate:[16,12] };
+  var dims={ lt:[22,16], library:[20,16], cafe:[18,14], sub:[20,14], jaja:[12,10], moremi:[12,10], health:[14,12], joint:[18,14], chapel:[14,18], mosque:[16,16], senate:[16,12], lodges:[12,10] };
   INSIDE_IDS.forEach(function(id,i){ var d=dims[id]; IN[id]={ cx:420+(i%4)*50, cz:420+Math.floor(i/4)*50, w:d[0], d:d[1] }; });
 })();
 function buildInteriors(g){
@@ -2264,6 +2270,13 @@ function buildInteriors(g){
   r=IN.mosque; room(r,hexc("#E9E2D0"),hexc("#F3EBDA"));
   for (var cr=0;cr<6;cr++) g.rect(r.cx-r.w/2+1,r.cz-5+cr*1.6,r.cx+r.w/2-1,r.cz-5+cr*1.6+1.2,0.02,hexc(cr%2?"#1E7A47":"#2E8B57"));
   g.box(r.cx,1.3,r.cz-r.d/2+0.25,1.6,2.4,0.1,hexc("#1E9E5A",0.3));
+  r=IN.lodges; room(r,hexc("#A0764A"),hexc("#F2E3C6"));
+  g.blk(r.cx-3.5,0,r.cz-2.5,2.4,0.45,3.2,WD); g.blk(r.cx-3.5,0.45,r.cz-2.5,2.3,0.25,3.1,hexc("#DDE8F8")); g.blk(r.cx-3.5,0.7,r.cz-3.7,1.4,0.18,0.6,hexc("#F4F4F4")); OBST.push([r.cx-4.7,r.cz-4.1,r.cx-2.3,r.cz-0.9]);
+  g.blk(r.cx+3.5,0,r.cz-3.8,2.6,2.2,0.9,WD); OBST.push([r.cx+2.2,r.cz-4.3,r.cx+4.8,r.cz-3.3]);
+  g.blk(r.cx+3,0,r.cz+0.5,1.6,0.78,1,WD); g.blk(r.cx+3,0,r.cz+1.4,0.6,0.5,0.6,hexc("#2B4CC0")); OBST.push([r.cx+2.2,r.cz,r.cx+3.8,r.cz+1]);
+  g.cyl(r.cx+5,0,r.cz-1.5,0.06,0.06,1.5,6,DK); g.cyl(r.cx+5,1.5,r.cz-1.5,0.35,0.35,0.08,10,hexc("#9FD4FF"));
+  g.blk(r.cx,0,r.cz-4.6,2,0.6,0.5,DK); g.box(r.cx,1.05,r.cz-4.6,1.6,0.9,0.08,hexc("#26303C",0.6));
+  g.rect(r.cx-2,r.cz-1,r.cx+2,r.cz+2,0.02,hexc("#C0392B"));
   r=IN.senate; room(r,hexc("#BDB5A5"),W);
   counter(r.cx-3,r.cz-3,4); counter(r.cx+3,r.cz-3,4);
   for (var sc=0;sc<3;sc++) bench(r.cx,r.cz+0.5+sc*1.8,8,hexc("#2B4CC0"));
@@ -2491,6 +2504,11 @@ $("#sheet").addEventListener("click", function(e){
 
 /* town activities */
 function townActions(id){
+  var acts=townActions0(id);
+  if (SHOPS[id]) acts.unshift(A({k:"shop", label:id==="motorpark"?"Car dealer and snack kiosk":"Shop here", hot:1, go:function(){ openShop(id); return null; }}));
+  return acts;
+}
+function townActions0(id){
   var h=hourNow();
   if (id==="gate") return [
     A({k:"ride", label:"Get a ride", hot:1, go:function(){ closeSheet(); openRides(); return null; }}),
@@ -2507,7 +2525,9 @@ function townActions(id){
     A({k:"print", label:"Print your assignment", cost:300, mins:20, daily:1, fx:{rep:1,prep:2}, text:"The printer jammed twice, but it's done."}),
     A({k:"pq", label:"Download and study past questions", cost:500, mins:60, fx:{prep:5}, study:1, text:"Past questions are the real syllabus."}),
     A({k:"browse", label:"Browse and watch videos", cost:400, mins:60, fx:{vibes:15}, text:"Fast WiFi. You watched skits for an hour."}) ];
+  if (id==="lodges" && S.home!=="hostel") return homeActions();
   if (id==="lodges") return [
+    A({k:"rent", label:"Rent a room here", hot:1, go:function(){ openHomes(); return null; }}),
     A({k:"visit", label:"Visit a coursemate's lodge", mins:60, daily:1, fx:{vibes:15,pop:2}, text:"Indomie, music and gist. Their landlord knocked twice."}),
     A({k:"ask", label:"Ask the landlord about rooms", mins:20, go:function(){ return { text:"A face-me-I-face-you room is ₦60,000 a year. A self-contain is ₦150,000, paid upfront. 'Light and water dey,' he says." }; }}) ];
   if (id==="market") return [
@@ -2525,6 +2545,249 @@ function townActions(id){
 
 $("#btn-ride").addEventListener("click", function(){ if (ride) return; openRides(); });
 
+/* ===== Homes, rent, shops and owned things ===== */
+var HOMES = {
+  hostel:{ n:"Hostel bed", rent:1500, sleep:70, d:"Room 14 with five roommates. Cheap and loud, and the water comes and goes." },
+  face:{ n:"Face-me-I-face-you room", rent:3000, sleep:77, d:"Your own room in a shared lodge. Shared toilet and kitchen." },
+  selfcon:{ n:"Self-contain", rent:6000, sleep:86, bath:true, d:"Own room and own bathroom, with steady water." },
+  miniflat:{ n:"Mini flat", rent:12000, sleep:95, bath:true, flex:true, d:"Bedroom, parlour and AC. Big boy or big girl energy." }
+};
+function H(){ return HOMES[S.home] || HOMES.hostel; }
+function homePlace(){ return S.home==="hostel" ? hallId() : "lodges"; }
+function homeLabel(){ return S.home==="hostel" ? PLACE[hallId()].name+", Room 14" : H().n+", "+PLACE.lodges.name; }
+function homeSleep(){ return H().sleep + (S.own.fan?8:0) + (S.own.gen && S.home!=="hostel" ? 10 : 0); }
+function landlord(){ return S.home==="hostel" ? "Hall Admin" : "Landlord"; }
+CONTACTS.land = { n:function(){ return S.home==="hostel" ? "Hall Admin" : "Landlord (Lodges)"; }, av:"🏠" };
+function payRent(){
+  var due=H().rent+(S.rentOwed||0);
+  if (S.cash>=due){ apply({ cash:-due }, "Rent: "+H().n); S.rentOwed=0; S.rentMiss=0; incoming("land","Received your rent of "+fmt(due)+". Thank you 🙏"); return; }
+  S.rentOwed=(S.rentOwed||0)+H().rent; S.rentMiss=(S.rentMiss||0)+1;
+  if (S.rentMiss>=2 && S.home!=="hostel"){
+    S.home="hostel"; S.rentOwed=0; S.rentMiss=0; S.log.push("Got packed out of the lodge for unpaid rent.");
+    incoming("land","You've owed rent for two weeks. Your things are outside. Go back to your hostel.");
+  } else incoming("land","You owe "+fmt(S.rentOwed)+" in rent. Pay from the Home app before next Saturday.");
+}
+function moveTo(k){
+  var nh=HOMES[k]; if (!nh || k===S.home || S.cash<nh.rent) return;
+  var d=apply({ cash:-nh.rent }, "First week's rent: "+nh.n);
+  S.home=k; S.rentMiss=0; S.log.push("Moved into a "+nh.n.toLowerCase()+".");
+  save(); toast("🏠 You moved into a <b>"+esc(nh.n.toLowerCase())+"</b> at "+esc(PLACE[homePlace()].name)+".", d);
+}
+
+/* items you carry, things you own */
+var ITEMS = {
+  indomie:{ n:"Indomie (5 packs)", p:1500, add:5, shops:["minimart","market"], use:{food:22}, u:"Eat dry or cook it at home" },
+  gala:{ n:"Gala", p:300, add:1, shops:["minimart","motorpark"], use:{food:12,vibes:2}, u:"Quick snack" },
+  water:{ n:"Bag of pure water (10)", p:500, add:10, shops:["minimart","market"], use:{energy:3,fresh:5}, u:"Drink or splash" },
+  bread:{ n:"Bread and eggs", p:1200, add:2, shops:["market"], use:{food:30}, u:"Proper breakfast" },
+  milo:{ n:"Milo and milk", p:2500, add:5, shops:["market","minimart"], use:{food:8,energy:8,vibes:4}, u:"Morning tea" },
+  edrink:{ n:"Energy drink", p:700, add:1, shops:["minimart"], use:{energy:20,vibes:2}, u:"Instant energy" },
+  panadol:{ n:"Paracetamol", p:400, add:1, shops:["minimart","market"], use:{energy:5}, cure:true, u:"Treats fever" }
+};
+var GOODS = {
+  lamp:{ n:"Reading lamp", p:6000, shop:"market", perk:"Study counts 15% extra." },
+  fan:{ n:"Rechargeable fan", p:15000, shop:"market", perk:"Sleep restores 8 more energy." },
+  watch:{ n:"Wristwatch", p:12000, shop:"market", perk:"+6 popularity.", pop:6 },
+  sneakers:{ n:"Fresh sneakers", p:18000, shop:"market", perk:"Walk 15% faster. +4 popularity.", pop:4 },
+  gen:{ n:"Small generator", p:45000, shop:"market", perk:"Sleep restores 10 more energy in a lodge." },
+  phone:{ n:"New smartphone", p:65000, shop:"market", perk:"+8 popularity.", pop:8 },
+  laptop:{ n:"Fairly used laptop", p:90000, shop:"market", perk:"Study counts 25% extra. Unlocks the graphic designer job." },
+  car:{ n:"Tokunbo Toyota Corolla", p:350000, shop:"motorpark", perk:"Your own car, parked at the Motor Park." }
+};
+var SHOPS = { minimart:"Mini Mart shelves", market:"Market stalls", motorpark:"Car dealer and snack kiosk" };
+var shopId=null, shopNote=null;
+function openShop(id){ shopId=id; shopNote=null; sheetMode="shop"; renderShop(); openSheet(); }
+function renderShop(){
+  var h='<p class="sh-k">'+esc(PLACE[shopId].name)+'</p><h2 class="sh-t" id="sh-t" tabindex="-1">'+esc(SHOPS[shopId])+'</h2><div class="statline"><span>'+fmt(S.cash)+'</span><span>🎒 Items go in your Bag app</span></div>';
+  if (shopNote) h+='<p class="note">'+esc(shopNote)+"</p>";
+  var rows=[];
+  Object.keys(ITEMS).forEach(function(k){ var it=ITEMS[k]; if (it.shops.indexOf(shopId)<0) return; var have=S.inv[k]||0;
+    rows.push('<button type="button" class="choice" data-buy="'+k+'"'+(S.cash<it.p?" disabled":"")+'><span>'+esc(it.n)+'<span class="why">'+esc(it.u)+(have?". You have "+have:"")+'</span></span><span class="cost">'+fmt(it.p)+"</span></button>"); });
+  Object.keys(GOODS).forEach(function(k){ var g=GOODS[k]; if (g.shop!==shopId) return; var own=!!S.own[k];
+    rows.push('<button type="button" class="choice'+(own?" hot":"")+'" data-buyg="'+k+'"'+(own||S.cash<g.p?" disabled":"")+'><span>'+esc(g.n)+'<span class="why">'+(own?"You own this. ":"")+esc(g.perk)+'</span></span><span class="cost">'+fmt(g.p)+"</span></button>"); });
+  h+='<div class="choices">'+rows.join("")+'</div><button type="button" class="btn ghost" data-close="1">Done shopping</button>';
+  $("#sheet").innerHTML=h;
+}
+function buyItem(k){ var it=ITEMS[k]; if (!it || S.cash<it.p) return; apply({ cash:-it.p }, it.n); S.inv[k]=(S.inv[k]||0)+it.add; passTime(3); shopNote="Bought "+it.n.toLowerCase()+"."; save(); renderHUD(); renderShop(); }
+function buyGood(k){
+  var g=GOODS[k]; if (!g || S.own[k] || S.cash<g.p) return;
+  var fx={ cash:-g.p }; if (g.pop) fx.pop=g.pop;
+  apply(fx, g.n); S.own[k]=1; S.log.push("Bought a "+g.n.toLowerCase()+".");
+  if (k==="car") S.car={ owned:true, day:S.day, x:-12, z:84, yaw:Math.PI/2, c:pick([[0.85,0.86,0.88],[0.12,0.2,0.55],[0.15,0.15,0.16],[0.55,0.08,0.1]]) };
+  passTime(10); shopNote="It's yours: "+g.n+". "+g.perk; save(); renderHUD(); renderShop(); sendPresence(true);
+}
+function useItem(k){
+  var it=ITEMS[k]; if (!it || !(S.inv[k]>0)) return;
+  S.inv[k]--; if (it.cure && S.flags.sick){ S.flags.sick=0; }
+  var d=apply(it.use); save(); renderHUD(); toast("Used "+esc(it.n.replace(/ \(.*\)/,"").toLowerCase())+"."+(it.cure?" Fever gone.":""), d); if (phoneOpen) renderPhone();
+}
+$("#sheet").addEventListener("click", function(e){
+  var b=e.target.closest("button"); if (!b || b.disabled) return;
+  if (b.dataset.buy) buyItem(b.dataset.buy); else if (b.dataset.buyg) buyGood(b.dataset.buyg);
+});
+function openHomes(){ closeSheet(); openPhone("house"); }
+
+function bagApp(){
+  var keys=Object.keys(ITEMS).filter(function(k){ return S.inv[k]>0; }), goods=Object.keys(GOODS).filter(function(k){ return S.own[k]; });
+  var h='<div class="appbody pad">';
+  h+='<div class="tt-day">Things you carry</div>'+(keys.length? keys.map(function(k){ var it=ITEMS[k];
+    return '<div class="tt-row"><div><b>'+esc(it.n.replace(/ \(.*\)/,""))+" ×"+S.inv[k]+'</b><br><span>'+esc(it.u)+'</span></div><button type="button" class="btn" style="width:auto;min-height:40px;padding:6px 14px;font-size:15px" data-use="'+k+'">Use</button></div>'; }).join("")
+    : '<p class="live-empty" style="padding:4px 0">Empty. Shop at the Mini Mart or the market in '+esc(townName())+".</p>");
+  h+='<div class="tt-day">Things you own</div>'+(goods.length? goods.map(function(k){ return '<div class="tt-row"><div><b>'+esc(GOODS[k].n)+"</b><br><span>"+esc(GOODS[k].perk)+"</span></div></div>"; }).join("") : '<p class="live-empty" style="padding:4px 0">Nothing yet. A reading lamp is a good first buy.</p>');
+  return h+"</div>";
+}
+function houseApp(){
+  var h='<div class="appbody pad"><div class="tt-row now"><div><b>'+esc(H().n)+'</b><br><span>'+esc(homeLabel())+'</span></div><span>'+fmt(H().rent)+"/week</span></div>";
+  h+='<p class="live-empty" style="padding:4px 0">Rent is paid every Saturday morning from your wallet. Miss two weeks in a lodge and you\u2019re packed out.</p>';
+  if (S.rentOwed>0) h+='<button type="button" class="btn" data-payrent="1"'+(S.cash<S.rentOwed?" disabled":"")+'>Pay '+fmt(S.rentOwed)+" you owe</button>";
+  h+='<div class="tt-day">Places to live</div>'+Object.keys(HOMES).map(function(k){ var o=HOMES[k], cur=k===S.home;
+    return '<div class="tt-row'+(cur?" now":"")+'"><div><b>'+esc(o.n)+'</b><br><span>'+esc(o.d)+" "+fmt(o.rent)+'/week.</span></div>'+(cur?"<span>Your home</span>":'<button type="button" class="btn" style="width:auto;min-height:40px;padding:6px 12px;font-size:14px" data-move="'+k+'"'+(S.cash<o.rent?" disabled":"")+">Move in</button>")+"</div>"; }).join("");
+  return h+'<p class="live-empty" style="padding:8px 0">Moving in costs the first week\u2019s rent. Lodges are at '+esc(PLACE.lodges.name)+" in "+esc(townName())+".</p></div>";
+}
+$("#pscreen").addEventListener("click", function(e){
+  var b=e.target.closest("button"); if (!b || b.disabled) return;
+  if (b.dataset.use) useItem(b.dataset.use);
+  else if (b.dataset.move){ moveTo(b.dataset.move); renderPhone(); }
+  else if (b.dataset.payrent){ if (S.cash>=S.rentOwed){ apply({ cash:-S.rentOwed }, "Rent owed"); S.rentOwed=0; S.rentMiss=0; save(); renderHUD(); renderPhone(); } }
+});
+function homeActions(){
+  var o=H(), hh=hourNow(), night=hh>=20||hh<5;
+  return [
+    night||S.energy<25 ? A({k:"sleep", label:"Sleep in your "+o.n.toLowerCase(), hot:1, go:function(){ closeSheet(); endOfDay("bed"); return null; }})
+                       : A({k:"nap", label:"Take a nap", mins:120, fx:{energy:24}, text:"Your own space. No roommate snoring."}),
+    A({k:"bath", label:"Take a bath", mins:20, go:function(){ if (!o.bath && Math.random()<0.25){ passTime(30); return { fx:{fresh:100,energy:-4}, text:"The shared tap was dry. You bought water from the water seller." }; } return { fx:{fresh:100}, text:o.bath?"Your own bathroom. Pure luxury.":"Shared bathroom, but it's clean today." }; }}),
+    A({k:"cook", label:"Cook indomie from your bag", mins:20, req:function(){ return (S.inv.indomie||0)<1 ? "Buy Indomie at the Mini Mart or market." : ""; }, go:function(s){ s.inv.indomie--; return { fx:{food:35}, text:"Indomie with pepper and egg. Chef!" }; }}),
+    A({k:"study", label:"Study at home", mins:90, fx:{prep:6,vibes:-4}, study:1, req:function(){ return S.own.lamp||S.own.laptop ? "" : "Buy a reading lamp at the market first."; }, text:"Quiet room, good light, real progress."}),
+    A({k:"host", label:"Invite friends over", mins:90, daily:1, fx:{vibes:22,pop:o.flex?8:4}, text:o.flex?"People will talk about your mini flat all week.":"Small room, big vibes."}),
+    A({k:"homes", label:"Change where you live", go:function(){ openHomes(); return null; }}) ];
+}
+
+/* ===== Careers: jobs app, shifts, promotions ===== */
+function C5(id,n,p,h,pay,titles,o){ o=o||{}; return { id:id, n:n, p:p, h:h, pay:pay, titles:titles, need:o.need||null, req:o.req||[], perk:o.perk||null }; }
+var JOBS = [
+  C5("cashier","Mini Mart cashier","minimart",[8,20],[1200,1600,2100,2800,3800],["Trainee cashier","Cashier","Senior cashier","Supervisor","Store manager"],{ req:[null,null,null,{rep:3},{rep:8}] }),
+  C5("trader","Market sales assistant","market",[8,18],[1100,1500,2000,2700,3600],["Shop help","Sales assistant","Senior sales assistant","Stall manager","Stall owner"],{ req:[null,null,{pop:15},{pop:20},{rep:6}] }),
+  C5("cook","Buka cook","buka",[7,15],[1100,1500,2000,2700,3600],["Pepper grinder","Cook","Senior cook","Head cook","Buka partner"],{ perk:{food:10}, req:[null,null,null,{pop:15},{rep:6}] }),
+  C5("conductor","Danfo conductor","motorpark",[6,14],[1300,1700,2200,2900,3900],["Apprentice conductor","Conductor","Senior conductor","Park supervisor","Fleet manager"],{ req:[null,null,null,{pop:15},{rep:8}] }),
+  C5("cyberatt","Cyber café attendant","cyber",[9,19],[1200,1600,2100,2800,3700],["Attendant","Print operator","Senior operator","Shift manager","Café manager"],{ perk:{prep:1}, req:[null,null,{prep:25},null,{rep:6}] }),
+  C5("bartender","Bartender","club",[21,24],[1800,2400,3100,4000,5200],["Bar help","Bartender","Mixologist","Bar manager","Club manager"],{ req:[null,null,{pop:25},null,{rep:10}] }),
+  C5("bouncer","Bouncer","club",[21,24],[2000,2600,3300,4200,5400],["Door guy","Bouncer","Head of door","Security lead","Security boss"],{ req:[null,null,null,{rep:5},{rep:12}] }),
+  C5("dj","DJ","joint",[20,24],[2500,3500,5000,7000,10000],["Bedroom DJ","Campus DJ","Resident DJ","Headline DJ","Celebrity DJ"],{ need:{pop:30}, perk:{pop:2,vibes:5}, req:[null,null,{pop:45},{pop:60},{pop:75}] }),
+  C5("barber","Barber","sub",[10,20],[1500,2000,2700,3600,4800],["Apprentice barber","Barber","Senior barber","Salon manager","Salon owner"],{ req:[null,null,{pop:20},null,{rep:8}] }),
+  C5("stylist","Hair stylist","sub",[10,20],[1500,2000,2700,3600,4800],["Apprentice braider","Braider","Senior stylist","Salon manager","Salon owner"],{ req:[null,null,{pop:20},null,{rep:8}] }),
+  C5("pos","POS agent","sub",[8,18],[1200,1600,2100,2800,3800],["POS assistant","POS agent","Senior agent","Area agent","POS business owner"],{ req:[null,null,null,{rep:8},{rep:12}] }),
+  C5("waiter","Mama Put waiter","cafe",[11,19],[1100,1500,2000,2600,3400],["Plate washer","Waiter","Senior waiter","Floor manager","Canteen manager"],{ perk:{food:12} }),
+  C5("libasst","Library assistant","library",[9,17],[1300,1700,2200,2900,3800],["Shelf packer","Library assistant","Senior assistant","Section head","Chief library officer"],{ need:{prep:20}, perk:{prep:2}, req:[null,null,{prep:40},null,{rep:8}] }),
+  C5("tutor","JAMB tutor","library",[15,20],[2000,2700,3500,4600,6000],["Assistant tutor","Tutor","Senior tutor","Head tutor","Lesson centre owner"],{ need:{prep:35}, perk:{prep:2}, req:[null,null,{prep:55},{prep:70},{rep:15}] }),
+  C5("designer","Graphic designer","library",[8,22],[2500,3300,4300,5600,7500],["Junior designer","Designer","Senior designer","Lead designer","Studio owner"],{ need:{own:"laptop"}, req:[null,null,{prep:30},{pop:25},null] }),
+  C5("webdev","Web developer","library",[8,22],[3500,4600,6000,8000,11000],["Intern developer","Junior developer","Developer","Senior developer","Startup founder"],{ need:{own:"laptop",prep:40}, req:[null,null,{prep:55},{prep:70},{rep:12}] }),
+  C5("photo","Event photographer","lt",[14,20],[2200,3000,4000,5200,7000],["Photo assistant","Photographer","Senior photographer","Studio lead","Studio owner"],{ need:{own:"camera"}, req:[null,null,{pop:25},null,{rep:10}] }),
+  C5("creator","Content creator","lake",[10,20],[600,1500,3500,6500,12000],["New creator","Rising creator","Campus influencer","Brand ambassador","Celebrity creator"],{ need:{own:"phone"}, perk:{pop:2}, req:[null,{pop:20},{pop:35},{pop:55},{pop:75}] }),
+  C5("coach","Kids' football coach","sports",[16,19],[1200,1600,2100,2800,3600],["Assistant coach","Coach","Senior coach","Head coach","Academy owner"],{ perk:{vibes:6} }),
+  C5("cleaner","Hostel cleaner","hall",[6,10],[900,1200,1600,2100,2800],["Cleaner","Senior cleaner","Supervisor","Facility officer","Cleaning company owner"],{ perk:{rep:1} }),
+  C5("clinic","Clinic assistant","health",[8,16],[1500,2000,2600,3400,4500],["Ward helper","Clinic assistant","Senior assistant","Clinic coordinator","Pharmacy owner"],{ need:{prep:25}, req:[null,null,{prep:40},null,{rep:10}] }),
+  C5("runner","Senate office runner","senate",[8,17],[1300,1700,2300,3000,4000],["Office runner","Clerk","Senior clerk","Admin officer","Registry head"],{ need:{rep:5}, req:[null,null,{rep:8},null,{rep:15}] })
+];
+var JOB_BY = {}; JOBS.forEach(function(j){ JOB_BY[j.id]=j; });
+var SHIFTS_FOR = [0,4,9,15,24];
+var LEVELS = [["Level 1"],["Level 2"],["Level 3"],["Level 4"],["Level 5"]];
+GOODS.camera = { n:"DSLR camera", p:55000, shop:"market", perk:"Unlocks the event photographer job." };
+CONTACTS.boss = { n:function(){ var j=myJob(); return j ? "Boss ("+j.n+")" : "Former boss"; }, av:"💼" };
+function myJob(){ return S.job && JOB_BY[S.job.id] ? JOB_BY[S.job.id] : null; }
+function jobPlace(j){ return j.p==="hall" ? hallId() : j.p; }
+function jobLevel(){ return S.job ? clamp(S.job.level|0,0,4) : 0; }
+function jobTitle(){ var j=myJob(); return j ? j.titles[jobLevel()] : ""; }
+function isWorkday(d){ return d<=DAYS && dow(d)<=5; }
+function statsText(r){
+  if (!r) return "";
+  var out=[];
+  if (r.prep && S.prep<r.prep) out.push("readiness "+r.prep+"%");
+  if (r.pop && S.pop<r.pop) out.push("popularity "+r.pop);
+  if (r.rep && S.rep<r.rep) out.push("reputation "+r.rep);
+  if (r.own && !(S.own&&S.own[r.own])) out.push("a "+GOODS[r.own].n.toLowerCase());
+  return out.join(", ");
+}
+function jobReqText(j){ var t=statsText(j.need); return t ? "Needs "+t : ""; }
+function nextPromo(){
+  var j=myJob(); if (!j) return null; var L=jobLevel(); if (L>=4) return { done:true };
+  var need=SHIFTS_FOR[L+1]-(S.job.shifts|0), st=statsText(j.req[L+1]);
+  return { shifts:Math.max(0,need), stats:st, title:j.titles[L+1] };
+}
+function shiftHours(j){ return hr(j.h[0]*60)+" to "+hr(Math.min(j.h[1],24)*60); }
+function jobShiftAction(){
+  var j=myJob(); if (!j) return null;
+  return A({ k:"shift", label:"Work your shift as "+jobTitle(), mins:120, hot:1,
+    req:function(){
+      var h=hourNow();
+      if (S.day<S.job.start) return "You start tomorrow.";
+      if (!isWorkday(S.day)) return "No shift today. You work Monday to Saturday.";
+      if (!(h>=j.h[0] && h<j.h[1])) return "Your shift runs "+shiftHours(j)+".";
+      if ((S.today.shifts||0)>=2) return "You've worked two shifts today. Rest.";
+      return "";
+    },
+    fx:{energy:-12,food:-8,vibes:-5,fresh:-6},
+    go:function(s){
+      var L=jobLevel(), pay=earn(j.pay[L]);
+      s.today.shifts=(s.today.shifts||0)+1; s.today.worked=1; s.job.shifts=(s.job.shifts|0)+1;
+      var fx={ cash:pay }; if (j.perk) for (var k in j.perk) fx[k]=j.perk[k];
+      var text=pick(["Steady shift. Payment received.","Busy, but you held it down.","Your boss said 'well done' and actually meant it."]), log=null;
+      var np=nextPromo();
+      if (np && !np.done && np.shifts<=0 && !np.stats){ s.job.level=L+1; text="Promotion! You're now a "+j.titles[L+1]+". Your pay went up to "+fmt(earn(j.pay[L+1]))+" a shift."; log="Promoted to "+j.titles[L+1]+"."; setTimeout(function(){ incoming("boss","Congratulations on your promotion to "+j.titles[L+1]+". Keep it up 👏"); },600); }
+      return { fx:fx, cashLabel:j.titles[L]+" shift", text:text, log:log };
+    } });
+}
+function applyJob(id){
+  var j=JOB_BY[id]; if (!j || myJob() || jobReqText(j)) return;
+  S.job={ id:id, level:0, shifts:0, missed:0, start:S.day+1 };
+  S.log.push("Got hired as a "+j.titles[0]+".");
+  incoming("boss","Welcome aboard! You start tomorrow. Your shift is "+shiftHours(j)+" at "+PLACE[jobPlace(j)].name+", Monday to Saturday. Don't miss it.",null,true);
+  save(); toast("💼 Hired as a <b>"+esc(j.titles[0])+"</b>. You start tomorrow.");
+}
+function quitJob(){ var j=myJob(); if (!j) return; S.log.push("Quit the job as "+jobTitle()+"."); S.job=null; save(); }
+function jobTick(a,b){
+  var j=myJob(); if (!j || S.day<S.job.start || !isWorkday(S.day) || S.today.worked) return;
+  var t=j.h[0]*60-30; if (t<0) t=0;
+  if (a<t && b>=t) toast("💼 Your shift at <b>"+esc(PLACE[jobPlace(j)].name)+"</b> starts at "+hr(j.h[0]*60)+". Tap to get a ride.", null, function(){ openRides(jobPlace(j)); });
+}
+function jobDayEnd(notes){
+  var j=myJob(); if (!j || S.day<S.job.start || !isWorkday(S.day) || S.today.worked) return;
+  S.job.missed=(S.job.missed|0)+1;
+  if (S.job.missed>=3){ S.log.push("Got fired as "+jobTitle()+" for missing shifts."); incoming("boss","You've missed three shifts. Don't come back. You're fired.",null,true); notes.push("You were fired for missing shifts."); S.job=null; }
+  else { incoming("boss","You didn't show up for your shift today. That's "+S.job.missed+" of 3. Next time, you're out.",null,true); notes.push("You missed your shift. Your boss is not happy."); }
+}
+function openJobs(){ closeSheet(); openPhone("jobs"); }
+function renderJobs(){ if (phoneOpen) renderPhone(); }
+function takeJob(id){ applyJob(id); renderJobs(); }
+function jobsApp(){
+  var j=myJob(), h='<div class="appbody pad">';
+  if (j){
+    var L=jobLevel(), np=nextPromo();
+    h+='<div class="tt-row now"><div><b>'+esc(jobTitle())+'</b><br><span>'+esc(PLACE[jobPlace(j)].name)+", "+shiftHours(j)+", Mon to Sat</span></div><span>"+fmt(earn(j.pay[L]))+"/shift</span></div>";
+    h+='<div class="meter"><div class="row"><span>Career level</span><span>'+(L+1)+' of 5</span></div><div class="bar"><b style="width:'+((L+1)*20)+'%"></b></div></div>';
+    h+='<div class="tt-row"><b>Shifts worked</b><span>'+(S.job.shifts|0)+'</span></div><div class="tt-row"><b>Missed shifts</b><span>'+(S.job.missed|0)+' of 3</span></div>';
+    h+='<p class="live-empty" style="padding:4px 0">'+(S.day<S.job.start?"You start tomorrow. ":"")+(np.done?"You're at the top of this career.":"Next: "+esc(np.title)+". "+(np.shifts?np.shifts+" more shift"+(np.shifts>1?"s":""):"Shifts done")+(np.stats?", and "+esc(np.stats):"")+".")+"</p>";
+    h+='<button type="button" class="btn" data-ridejob="1">🛺 Get a ride to work</button><button type="button" class="btn ghost" data-quitjob="1">Quit this job</button>';
+  }
+  [["Jobs on campus",true],["Jobs in "+townName(),false]].forEach(function(g){
+    h+='<div class="tt-day">'+esc(g[0])+"</div>";
+    JOBS.filter(function(x){ return onCampus(PLACE[jobPlace(x)].door[1])===g[1]; }).forEach(function(x){
+      var why=jobReqText(x), mine=j&&j.id===x.id;
+      h+='<div class="tt-row'+(mine?" now":"")+'"><div><b>'+esc(x.n)+'</b><br><span>'+esc(PLACE[jobPlace(x)].name)+", "+shiftHours(x)+". "+fmt(earn(x.pay[0]))+" rising to "+fmt(earn(x.pay[4]))+" a shift."+(why?" "+esc(why)+".":"")+'</span></div>'+
+        (mine?"<span>Your job</span>":'<button type="button" class="btn" style="width:auto;min-height:40px;padding:6px 12px;font-size:14px" data-apply="'+x.id+'"'+(why||j?" disabled":"")+">Apply</button>")+"</div>";
+    });
+  });
+  if (j) h+='<p class="live-empty" style="padding:6px 0">Quit your current job to apply for another.</p>';
+  return h+"</div>";
+}
+$("#pscreen").addEventListener("click", function(e){
+  var b=e.target.closest("button"); if (!b || b.disabled) return;
+  if (b.dataset.apply){ applyJob(b.dataset.apply); renderPhone(); }
+  else if (b.dataset.quitjob){ quitJob(); renderPhone(); }
+  else if (b.dataset.ridejob){ var j=myJob(); if (j) openRides(jobPlace(j)); }
+});
+
+if (S.job && (!JOB_BY[S.job.id] || S.job.start==null)) S.job=null;
+
 /* ===== Campus NG v2: phone, screens, loop ===== */
 function openPhone(app, arg){
   if (S.phase!=="play" || dayEnding) return;
@@ -2536,7 +2799,7 @@ function closePhone(){ phoneOpen=false; $("#phone").hidden=true; mapSel=null; }
 $("#btn-phone").addEventListener("click", function(){ openPhone("home"); });
 $("#btn-map").addEventListener("click", function(){ openPhone("map"); });
 
-var APPS=[["chats","Chats","💬","#1E9E5A"],["live","Campus Live","📡","#8E44AD"],["wallet","Wallet","💳","#2347C5"],["map","Map","🗺️","#0F8B8D"],["tt","Timetable","📅","#F28C28"],["me","Me","👤","#56627F"]];
+var APPS=[["jobs","Jobs","💼","#C2410C"],["bag","Bag","🎒","#B5402F"],["house","Home","🏠","#0F5132"],["chats","Chats","💬","#1E9E5A"],["live","Campus Live","📡","#8E44AD"],["wallet","Wallet","💳","#2347C5"],["map","Map","🗺️","#0F8B8D"],["tt","Timetable","📅","#F28C28"],["me","Me","👤","#56627F"]];
 function sbar(){ return '<div class="sbar"><span>'+t12(S.min)+'</span><span>'+esc(UNI().short)+' WiFi ▂▄▆ 🔋</span></div>'; }
 function head(title, sub, backTo){ return '<div class="apphead"><button type="button" data-nav="'+(backTo||"home")+'" aria-label="Back">‹</button><div class="ttl">'+esc(title)+(sub?"<small>"+esc(sub)+"</small>":"")+'</div><button type="button" data-nav="close" aria-label="Close phone">✕</button></div>'; }
 function totalUnread(){ var n=0; for (var k in S.chats) n+=S.chats[k].unread||0; return n; }
@@ -2596,12 +2859,15 @@ function renderPhone(){
     rows+='<div class="tt-day">Exams</div><div class="tt-row"><b>All courses</b><span>Day 15, 1K Hall</span></div>';
     h+='<div class="appbody pad">'+rows+'<p class="live-empty" style="padding:8px 0">Attendance so far: '+S.attended+" of "+LECTURES+" lectures.</p></div>";
   }
+  else if (phoneApp==="jobs"){ h+=head("Jobs", myJob()?jobTitle():"Find work"); h+=jobsApp(); }
+  else if (phoneApp==="bag"){ h+=head("Bag", fmt(S.cash)); h+=bagApp(); }
+  else if (phoneApp==="house"){ h+=head("Home", H().n); h+=houseApp(); }
   else if (phoneApp==="me"){
     h+=head(S.name||"Me", CRS().name+", "+TRAITS[S.trait].name);
     var meter=function(lbl,v,col){ return '<div class="meter"><div class="row"><span>'+lbl+"</span><span>"+Math.round(v)+'</span></div><div class="bar"><b style="width:'+clamp(v,0,100)+"%;background:"+col+'"></b></div></div>'; };
     h+='<div class="appbody pad">'+meter("⚡ Energy",S.energy,"#127A43")+meter("🍛 Food",S.food,"#E6A817")+meter("🚿 Freshness",S.fresh,"#0F8B8D")+meter("🎉 Vibes",S.vibes,"#8E44AD")+
       meter("📚 Exam readiness",S.prep,"#2347C5")+meter("⭐ Popularity",S.pop,"#F28C28")+
-      '<div class="tt-row"><b>University</b><span>'+esc(UNI().short)+'</span></div><div class="tt-row"><b>Job</b><span>'+(S.job&&JOB_BY[S.job.id]?esc(LEVELS[jobLevel()][0]+" "+JOB_BY[S.job.id].n):"None yet. Check the SUB jobs board")+'</span></div><div class="tt-row"><b>Reputation</b><span>'+repLabel(S.rep)+'</span></div><div class="tt-row"><b>Lectures attended</b><span>'+S.attended+" of "+LECTURES+'</span></div><div class="tt-row"><b>Hostel</b><span>'+PLACE[hallId()].name+", Room 14</span></div>"+
+      '<div class="tt-row"><b>University</b><span>'+esc(UNI().short)+'</span></div><div class="tt-row"><b>Job</b><span>'+(S.job&&JOB_BY[S.job.id]?esc(jobTitle()):"None yet. Open the Jobs app")+'</span></div><div class="tt-row"><b>Reputation</b><span>'+repLabel(S.rep)+'</span></div><div class="tt-row"><b>Lectures attended</b><span>'+S.attended+" of "+LECTURES+'</span></div><div class="tt-row"><b>Home</b><span>'+esc(homeLabel())+"</span></div>"+
       '<button type="button" class="btn" style="margin-top:12px" data-look="1">Change your look</button><button type="button" class="btn ghost" data-restart="1">'+(restartArm?"Tap again to start over":"Start over")+"</button></div>";
   }
   sc.innerHTML=h;
@@ -2708,7 +2974,8 @@ $("#btn-enter").addEventListener("click", function(){
 });
 function startSemester(){
   var keep={ name:S.name, gender:S.gender, look:S.look, course:S.course, trait:S.trait, muted:S.muted, uni:S.uni };
-  S=fresh(); Object.assign(S,keep); applyUni();
+  var keepOwn=S.own||{}, keepCar=(S.car&&S.car.owned)?S.car:null;
+  S=fresh(); Object.assign(S,keep); S.own=keepOwn; S.car=keepCar; applyUni();
   var c=CRS(); S.pop=c.popStart; S.rep=c.repStart; S.cash=startCash();
   S.phase="play"; S.x=Math.round((Math.random()*6-3)*10)/10; S.z=40+Math.round(Math.random()*40)/10; S.yaw=Math.PI; camYaw=Math.PI; liveLog=[];
   save(); showHUD(true); renderHUD(); sendPresence(true);
@@ -2775,7 +3042,7 @@ function renderResult(animate){
   var hl=["Attended "+S.attended+" of "+LECTURES+" lectures."].concat(S.log.slice(-3));
   var h='<div class="lh"><svg class="crest"><use href="#crest"/></svg><div><div class="uni">'+esc(UNI().name)+'</div><div class="office">Examinations and Records</div></div></div><hr class="rule2">';
   h+='<h2>Statement of result</h2><p class="sem">First semester, 100 Level</p>';
-  h+='<dl class="who"><dt>Name</dt><dd>'+esc(S.name||"Fresher")+"</dd><dt>Course</dt><dd>"+esc(c.name)+"</dd><dt>Hall</dt><dd>"+esc(PLACE[hallId()].name)+"</dd></dl>";
+  h+='<dl class="who"><dt>Name</dt><dd>'+esc(S.name||"Fresher")+"</dd><dt>Course</dt><dd>"+esc(c.name)+"</dd><dt>Home</dt><dd>"+esc(homeLabel())+"</dd></dl>";
   h+='<table><thead><tr><th>Course</th><th class="num">Units</th><th class="num">Score</th><th class="g">Grade</th></tr></thead><tbody>'+R.rows.map(function(r){
     return "<tr><td><b>"+r.code+'</b><span class="t">'+esc(r.title)+'</span></td><td class="num">'+r.units+'</td><td class="num">'+r.score+'</td><td class="g'+(r.grade==="F"?" f":"")+'">'+r.grade+"</td></tr>"; }).join("")+"</tbody></table>";
   h+='<div class="gparow"><div class="gpa"><div class="lbl">GPA</div><div class="n">'+R.gpa.toFixed(2)+'</div><div class="c">'+classOf(R.gpa)+' track</div></div><div class="stamp'+(animate&&!REDUCE?" go":"")+'">'+esc(stampText(R))+"</div></div>";
