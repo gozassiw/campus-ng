@@ -13,3 +13,4 @@ class_name = "CampusRoom"
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["CampusRoom"]
+
