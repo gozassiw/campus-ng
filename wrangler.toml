@@ -14,3 +14,7 @@ class_name = "CampusRoom"
 tag = "v1"
 new_sqlite_classes = ["CampusRoom"]
 
+[[d1_databases]]
+binding = "DB"
+database_name = "campus-ng"
+database_id = "7872ed60-b44c-4a0d-b9f3-8ed0b9d7f3d7"
