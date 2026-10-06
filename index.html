@@ -315,16 +315,17 @@ td.g{font-weight:800;text-align:center;font-size:15px} th.g{text-align:center} t
   <div class="paper letter">
     <div class="lh">
       <svg class="crest"><use href="#crest"/></svg>
-      <div><div class="uni">30 Nigerian universities</div><div class="office">Admissions office</div></div>
+      <div><div class="uni">University of Lagos</div><div class="office">Office of the Registrar</div></div>
     </div>
     <hr class="rule2">
     <h1 class="big">Can you survive 100 Level and still pass?</h1>
-    <p>Pick your school, create your student, and live through 14 days of campus life before exams. Get a job, make friends and try not to go broke.</p>
+    <p>Welcome to UNILAG. The birth lottery decides if you arrive as a Nepo student with rich parents, or a LAPO student counting every naira. Then you have 14 days of lectures, jobs and Lagos life before exams.</p>
     <p class="sign">B. Adeyemi</p>
     <p class="signrole">Registrar</p>
+    <div id="acct" hidden></div>
     <button class="btn" id="btn-accept" type="button">Accept admission</button>
     <button class="btn ghost" id="btn-continue" type="button" hidden>Continue</button>
-    <p class="fine">Campus NG prototype. The university and everyone in it are fictional.</p>
+    <p class="fine">Campus NG. Characters and events in the game are fictional.</p>
   </div>
 </section>
 
@@ -586,13 +587,13 @@ var EDGES = [["gate","a0"],["a0","aw"],["a0","ae"],["aw","aww"],["ae","aee"],["a
 var PLACES = [
   { id:"senate", name:"Senate Building", box:[-8,-58,8,-47], door:[0,-45], top:28, hours:[8,17] },
   { id:"library", name:"Main Library", box:[-26,0,-8,12], door:[-6.2,6], top:11, hours:[8,22] },
-  { id:"lt", name:"1K Lecture Theatre", box:[6.9,-0.5,26,12.5], door:[5.8,6], top:11, hours:[7,20] },
+  { id:"lt", name:"Main Auditorium", box:[6.9,-0.5,26,12.5], door:[5.8,6], top:11, hours:[7,20] },
   { id:"cafe", name:"Mama Put Cafeteria", box:[-25,-31,-9,-21], door:[-17,-18.6], top:6, hours:[7,21] },
   { id:"sub", name:"SUB Hustle Hub", box:[9,-31,25,-21], door:[17,-18.6], top:9, hours:[8,20] },
   { id:"jaja", name:"Jaja Hall", box:[-51,-6,-39.9,18], door:[-38.6,6], top:14, hours:[0,24], hostel:"m" },
   { id:"moremi", name:"Moremi Hall", box:[39.9,-6,51,18], door:[38.6,6], top:14, hours:[0,24], hostel:"f" },
-  { id:"health", name:"Health Centre", box:[-51,-33,-41,-23], door:[-39,-28], top:6, hours:[0,24] },
-  { id:"lake", name:"Lovers' Garden", circle:[47,-28,7.5], door:[39.2,-28], top:4, hours:[6,23] },
+  { id:"health", name:"Medical Centre", box:[-51,-33,-41,-23], door:[-39,-28], top:6, hours:[0,24] },
+  { id:"lake", name:"Lagoon Front", circle:[47,-28,7.5], door:[39.2,-28], top:4, hours:[6,23] },
   { id:"sports", name:"Sports Complex", box:[-35,30.4,-9,33.3], door:[-6,42], top:4, hours:[6,21], center:[-22,42] },
   { id:"joint", name:"The Joint", box:[15,39,29,49], door:[22,37], top:7, hours:[16,26] },
   { id:"chapel", name:"Chapel", box:[-25,-57,-15,-49], door:[-20,-46.5], top:9, hours:[6,21] },
@@ -693,7 +694,7 @@ function buildWorld(){
   g.blk(-7.3,0,6,1.6,0.35,5,C("#CFC6B4"));
   g.box(-8.47,1.9,6,0.08,1.8,2.4,C("#3D2A1E"));
 
-  /* ---- 1K Lecture Theatre ---- */
+  /* ---- Main Auditorium ---- */
   g.blk(17,0,6,18,7,13,C("#E8D2A8"));
   g.blk(18,7,6,15,2,11,C("#D9BE8C"));
   g.blk(19,9,6,10,1.2,8,C("#C9A86E"));
@@ -750,14 +751,14 @@ function buildWorld(){
   hostel(-46, 1, "#2B4CC0");
   hostel(46, -1, "#D2508A");
 
-  /* ---- Health Centre ---- */
+  /* ---- Medical Centre ---- */
   g.blk(-46,0,-28,10,4.2,10,WHITE);
   g.box(-46,4.35,-28,10.6,0.3,10.6,C("#1E9E5A"));
   g.box(-40.95,2.9,-28,0.1,1.6,0.5,C("#1E9E5A",0.7)); g.box(-40.95,2.9,-28,0.1,0.5,1.6,C("#1E9E5A",0.7));
   g.box(-40.96,1.3,-28,0.08,2.4,2,C("#3D2A1E"));
   g.box(-40.96,2.2,-31.5,0.06,1.2,2.4,WIN); g.box(-40.96,2.2,-24.5,0.06,1.2,2.4,WIN);
 
-  /* ---- Lake / Lovers' Garden ---- */
+  /* ---- Lake / Lagoon Front ---- */
   g.disc(47,0.03,-28,9.6,24,C("#D8C49A"));
   g.disc(47,0.045,-28,7.5,24,C("#3F8FC0",0.15));
   for (var bi=0; bi<5; bi++){
@@ -1150,10 +1151,10 @@ var EVENTS = [
       { label:"Abeg, seven people is too much", go:function(){ return { fx:{pop:-2}, reply:"Hmm. Okay o. I go tell am." }; } },
       { label:"Only if he buys food for the room", go:function(){ return { fx:{vibes:6,food:15}, reply:"Deal! He don buy rice and stew for everybody 😂" }; } } ] },
   { id:"matric", to:"cls", sender:"Course Rep", slot:"am", w:9, when:function(s){ return s.day>=2 && s.day<=4 && !s.flags.matric && isWeekday(s.day); },
-    msg:"MATRICULATION is today, 10AM at the 1K Lecture Theatre! Wear white. Don't miss it 🙏",
+    msg:"MATRICULATION is today, 10AM at the Main Auditorium! Wear white. Don't miss it 🙏",
     choices:[
       { label:"I'll be there 👍", go:function(s){ s.flags.matric=s.day; return { reply:"Thank you! Be on time." }; } },
-      { label:"Is it compulsory?", go:function(s){ s.flags.matric=s.day; return { reply:"Very compulsory. 10AM, 1K Hall." }; } } ] },
+      { label:"Is it compulsory?", go:function(s){ s.flags.matric=s.day; return { reply:"Very compulsory. 10AM, Main Auditorium." }; } } ] },
   { id:"surprise_test", to:"cls", sender:"Course Rep", slot:"am", w:3, when:function(s){ return s.day>=3 && isWeekday(s.day) && s.flags.test!==s.day; },
     msg:function(){ return "URGENT: surprise test in today's 12PM class ("+lectureAt(S.day,1).code+"). Read o! 📚"; },
     choices:[
@@ -1212,7 +1213,7 @@ var EVENTS = [
     msg:"Hey 😊 I saved you a seat in class again. You're coming?",
     choices:[
       { label:"Yes! I'm coming 😊", go:function(){ return { fx:{vibes:8,pop:2}, reply:"Yay. Front row, left side 😄" }; } },
-      { label:"Small chops after class? My treat", need:1500, go:function(s){ s.flags.date=s.day; return { fx:{cash:-1500,vibes:12,pop:4}, cashLabel:"Small chops", reply:"Aww okay! Meet me at Lovers' Garden this evening 😊", log:"Bought small chops for "+crushName()+"." }; } },
+      { label:"Small chops after class? My treat", need:1500, go:function(s){ s.flags.date=s.day; return { fx:{cash:-1500,vibes:12,pop:4}, cashLabel:"Small chops", reply:"Aww okay! Meet me at Lagoon Front this evening 😊", log:"Bought small chops for "+crushName()+"." }; } },
       { label:"Sorry, I'm busy today", go:function(){ return { fx:{prep:2}, reply:"Okay o. Next time 🙂" }; } } ] },
   { id:"election", to:"cls", sender:"Course Rep", slot:"pm", w:2, when:function(s){ return s.day>=5 && s.day<=11; },
     msg:"Nominations for Class Social Director! Somebody nominated you 😂 Will you run?",
@@ -1235,7 +1236,7 @@ var EVENTS = [
       { label:"Hand it over", go:function(s){ s.flags.noPlate=1; return { fx:{rep:3}, reply:"He collected it. Indomie nights are on pause 😢" }; } },
       { label:"Say it's yours 👀", go:function(){ return { fx:{pop:-5,rep:-3}, reply:"Wow. Okay. I go remember this." }; } } ] },
   { id:"extra", to:"cls", sender:"Course Rep", slot:"pm", w:6, when:function(s){ return dow(s.day)===4 && s.day<DAYS; },
-    msg:"Extra class TOMORROW (Saturday) 7AM at the 1K Hall to cover the syllabus. Attendance will be taken.",
+    msg:"Extra class TOMORROW (Saturday) 7AM at the Main Auditorium to cover the syllabus. Attendance will be taken.",
     choices:[
       { label:"I'll be there", go:function(s){ s.flags.extra=s.day+1; return { reply:"👍" }; } },
       { label:"Saturday?! 😭", go:function(s){ s.flags.extra=s.day+1; return { reply:"Lecturer's orders. 7AM sharp." }; } } ] },
@@ -1370,7 +1371,7 @@ function schedule(a,b){
   if (isWeekday(S.day)){
     [0,1].forEach(function(s){
       var L=lectureAt(S.day,s);
-      if (crossed(a,b,L.start-15) && !S.today["lec"+s]) toast("📚 <b>"+L.code+"</b> starts at "+hr(L.start)+" in the 1K Lecture Theatre.", null, function(){ openPhone("tt"); });
+      if (crossed(a,b,L.start-15) && !S.today["lec"+s]) toast("📚 <b>"+L.code+"</b> with "+esc(lect(L.code).n)+" starts at "+hr(L.start)+" in the Main Auditorium.", null, function(){ openPhone("tt"); });
     });
     if (crossed(a,b,12*60+31) && S.flags.test===S.day && !S.flags.testDone){ S.flags.testDone=1; var d=apply({rep:-2}); toast("You missed the surprise test. That's a zero.", d); }
   }
@@ -1453,7 +1454,7 @@ var PLACE_DESC = {
   jaja:"Male hall of residence. Room 14: six people, one socket.",
   moremi:"Female hall of residence. Room 14: six people, one socket.",
   health:"The school clinic. Paracetamol for everything, but the nurse is kind.",
-  lake:"Benches, palm trees and a breeze. Couples call it Lovers' Garden.",
+  lake:"Benches, palm trees and a breeze. Couples call it Lagoon Front.",
   sports:"The pitch where departmental rivalries are settled.",
   joint:"Music, suya and questionable decisions. Busiest after dark.",
   chapel:"Fellowship, choir practice and quiet time.",
@@ -1525,10 +1526,10 @@ function placeActions(id){
   else if (id==="lake"){
     acts=[ A({k:"sit", label:"Sit by the water", mins:60, fx:{vibes:18,energy:4}, text:"The breeze off the water fixes everything for an hour."}) ];
     if (S.flags.date===S.day && h>=16 && h<21 && !S.flags.dateDone)
-      acts.unshift(A({k:"date", label:"Meet "+crushName()+" here", mins:90, hot:1, fx:{vibes:25,pop:4}, go:function(s){ s.flags.dateDone=1; return { text:"You walked round the lake twice and talked about everything except GST.", log:"Evening walk at Lovers' Garden with "+crushName()+"." }; }}));
+      acts.unshift(A({k:"date", label:"Meet "+crushName()+" here", mins:90, hot:1, fx:{vibes:25,pop:4}, go:function(s){ s.flags.dateDone=1; return { text:"You walked round the lake twice and talked about everything except GST.", log:"Evening walk at Lagoon Front with "+crushName()+"." }; }}));
   }
   else if (id==="senate") acts=[
-    A({k:"board", label:"Read the notice board", mins:10, go:function(){ return { text:pick(["Notice: Exams begin on Day 15 at the 1K Lecture Theatre. No phones allowed.","Notice: Students caught with 'expo' will face the disciplinary committee.","Notice: Hostel squatting is not permitted. (Everyone ignores this one.)","Notice: The Saturday extra class is compulsory, says the lecturer.","Notice: Attendance counts. Lectures hold at 8AM and 12PM on weekdays."]) }; }}),
+    A({k:"board", label:"Read the notice board", mins:10, go:function(){ return { text:pick(["Notice: Exams begin on Day 15 at the Main Auditorium. No phones allowed.","Notice: Students caught with 'expo' will face the disciplinary committee.","Notice: Hostel squatting is not permitted. (Everyone ignores this one.)","Notice: The Saturday extra class is compulsory, says the lecturer.","Notice: Attendance counts. Lectures hold at 8AM and 12PM on weekdays."]) }; }}),
     A({k:"alloc", label:"Ask about hostel allocation", mins:30, fx:{vibes:-3}, text:"They said come back tomorrow. They'll say that tomorrow too."}) ];
   var J=S.job && JOB_BY[S.job.id];
   if (J && jobPlace(J)===id){ var sa=jobShiftAction(); if (sa) acts.unshift(sa); }
@@ -1553,7 +1554,7 @@ function attendLecture(L){
     if (S.prep>=35){ fx.rep=2; fx.prep+=2; text="Surprise test! You remembered more than you expected. The lecturer nodded at you."; }
     else { fx.rep=-1; text="Surprise test! You wrote your name beautifully. The rest was creative writing."; }
   }
-  return { fx:fx, text:text, noTime:true };
+  return { fx:fx, text:lect(L.code).n+", "+L.code+": "+text, noTime:true };
 }
 function doPlaceAction(i){
   var acts=placeActions(curPlace), a=acts[i]; if (!a || a.info) return;
@@ -1599,7 +1600,7 @@ function openPlace(id){ if (!PLACE[id]) return; curPlace=id; placeNote=null; she
 
 /* ---------- NPCs ---------- */
 var NPC_M=["Emeka","Femi","Kunle","Ibrahim","Seyi","Uche","Musa","Chinedu","Tobi"], NPC_F=["Chidera","Tolu","Aisha","Zainab","Ngozi","Blessing","Halima","Amaka","Funke"];
-var LINES=["Who get charger? Abeg 🙏","Light don come! 🎉","Una don do the assignment?","GST test na tomorrow o.","This sun no be here 🥵","Mama Put rice don finish 😭","I go TDB tonight.","Abeg, where 1K Hall dey?","Water no dey hostel again.","Sapa is real this week.","Carryover no be my portion 🙏","Who dey go SUB?","My data don finish 😩","The lecturer no come again?","Jambite! You don lost? 😂","This semester go soft, I believe.","Have you registered your courses?"];
+var LINES=["Who get charger? Abeg 🙏","Light don come! 🎉","Una don do the assignment?","GST test na tomorrow o.","This sun no be here 🥵","Mama Put rice don finish 😭","I go TDB tonight.","Abeg, where Main Auditorium dey?","Water no dey hostel again.","Sapa is real this week.","Carryover no be my portion 🙏","Who dey go SUB?","My data don finish 😩","The lecturer no come again?","Jambite! You don lost? 😂","This semester go soft, I believe.","Have you registered your courses?"];
 var NBR={}; EDGES.forEach(function(e){ (NBR[e[0]]=NBR[e[0]]||[]).push(e[1]); (NBR[e[1]]=NBR[e[1]]||[]).push(e[0]); });
 var npcs=[];
 function rlook(g){ return { g:g, style: g==="f" ? pick([0,1,3,3]) : pick([0,0,1,2]), skin:Math.floor(Math.random()*SKINS.length), top:Math.floor(Math.random()*TOPS.length), bot:Math.floor(Math.random()*BOTS.length), hair: g==="f" ? pick([1,2,3,5,2,3]) : pick([0,0,1,4,0]) }; }
@@ -1826,7 +1827,7 @@ function drawScene(t){
     else { drawAvatar({ x:px, z:pz, yaw:py, phase:pPhase, amp:pAmp, cols:playerCols }); shadows.push([px,pz]); }
   }
   npcs.forEach(function(n){ if (Math.hypot(n.x-EYE[0],n.z-EYE[2])<150){ drawAvatar(n); shadows.push([n.x,n.z]); } });
-  drawParkedCar();
+  drawParkedCar(); drawFurniture();
   for (var id in remotes){ var r=remotes[id]; if (visibleRemote(r)){ if (r.v && VMESH(r.v)) drawVehicle(r.v,r.x,r.z,r.yaw,r.v==="car"?[0.7,0.72,0.76]:null); else { drawAvatar(r); shadows.push([r.x,r.z]); } } }
   GLX.blend(true); shadows.forEach(function(s){ drawShadow(s[0],s[1],0.5); }); GLX.blend(false);
 }
@@ -1876,7 +1877,7 @@ function updateActs(){
     else if (driving){ items.push({ k:"q:", t:"🅿️ Park and get out" }); }
     else if (S.car && !S.inside && (S.car.owned||S.car.day===S.day) && Math.hypot(S.car.x-S.x,S.car.z-S.z)<3.6){ items.push({ k:"c:", t:"🚗 Drive your car" }); }
     if (ride || driving) {}
-    else if (S.inside){ items.push({ k:"i:"+S.inside, t:"📋 Things to do in "+PLACE[S.inside].name }); items.push({ k:"x:", t:"🚪 Go outside", alt:true }); }
+    else if (S.inside){ items.push({ k:"i:"+S.inside, t:"📋 Things to do in "+PLACE[S.inside].name }); items.push({ k:"x:", t:"🚪 Go outside", alt:true }); if (S.inside===homePlace()) items.push({ k:"b:", t:"🛋️ Decorate your room", alt:true }); }
     else PLACES.forEach(function(P){ var d=Math.hypot(P.door[0]-S.x,P.door[1]-S.z); if (d<bd){ bd=d; bestP=P; } });
     if (bestP) items.push({ k:"p:"+bestP.id, t:(IN[bestP.id] ? "Enter " : "Go to ")+bestP.name });
     var bn=null, nd=2.8;
@@ -1894,6 +1895,7 @@ $("#acts").addEventListener("click", function(e){
   if (k[0]==="p") enterPlace(id);
   else if (k[0]==="i") openPlace(id);
   else if (k[0]==="x") exitPlace();
+  else if (k[0]==="b") openBuy();
   else if (k[0]==="s") stopRide();
   else if (k[0]==="c"){ driving=true; carV=0; actsKey=""; sendPresence(true); }
   else if (k[0]==="q"){ driving=false; carV=0; var c=S.car; S.x=c.x+Math.cos(c.yaw)*1.8; S.z=c.z-Math.sin(c.yaw)*1.8; collide(); actsKey=""; save(); sendPresence(true); }
@@ -1974,23 +1976,23 @@ function endOfDay(kind){
   if (kind!=="passout") teleport(homePlace());
   S.day++; S.min = kind==="party" ? 8*60+40 : 7*60; S.today={};
   notes.push("You woke up with "+Math.round(S.energy)+" energy.");
-  save();
+  save(); cloudSave(true);
   var exams=S.day>DAYS;
   showDayCard(exams?"Exam day":"Day "+S.day, exams?"Good luck":DOW[dow(S.day)], notes.join(" "), function(){ dayEnding=false; startDay(); });
 }
 function startDay(){
   if (S.day===1){
     incoming("mum","Have you reached school? Call me when you settle down. Don't follow bad friends o ❤️",null,true);
-    incoming("cls","Welcome to "+CRS().code+" 100L! Lectures hold at 8AM and 12PM, Monday to Friday, at the 1K Lecture Theatre.","Course Rep",true);
+    incoming("cls","Welcome to "+CRS().code+" 100L! Lectures hold at 8AM and 12PM, Monday to Friday, at the Main Auditorium.","Course Rep",true);
     incoming("land","Welcome! Hostel rent is ₦1,500 a week, collected every Saturday morning. You can move to a lodge in town from the Home app.",null,true);
     deliver(EV.intro_room);
     setTimeout(function(){ toast("Walk with the joystick. Drag the screen to look around. Tap a building to walk there."); }, 4500);
   } else if (S.day>DAYS){
-    incoming("cls","EXAMS TODAY at the 1K Lecture Theatre. Go there when you're ready. All the best! 🙏","Course Rep");
+    incoming("cls","EXAMS TODAY at the Main Auditorium. Go there when you're ready. All the best! 🙏","Course Rep");
   } else {
-    if (isWeekday(S.day)){ var a=lectureAt(S.day,0), b=lectureAt(S.day,1); incoming("cls","Good morning! Today: "+a.code+" at 8AM and "+b.code+" at 12PM, 1K Hall. Don't be late 🙏","Course Rep",true); }
-    if (dow(S.day)===5) payRent();
-    if (S.day>=4 && !S.flags.sick && Math.random()<0.08){ S.flags.sick=1; S.energy=Math.min(S.energy,60); toast("🤒 You woke up with a fever. Your energy is capped at 60 until you see the nurse at the Health Centre."); }
+    if (isWeekday(S.day)){ var a=lectureAt(S.day,0), b=lectureAt(S.day,1); incoming("cls","Good morning! Today: "+a.code+" at 8AM and "+b.code+" at 12PM, Main Auditorium. Don't be late 🙏","Course Rep",true); }
+    if (dow(S.day)===5){ payRent(); payAllowance(); }
+    if (S.day>=4 && !S.flags.sick && Math.random()<0.08){ S.flags.sick=1; S.energy=Math.min(S.energy,60); toast("🤒 You woke up with a fever. Your energy is capped at 60 until you see the nurse at the Medical Centre."); }
     if (Math.random()<0.85) maybeEvent("am");
   }
   save(); renderHUD();
@@ -2555,7 +2557,7 @@ var HOMES = {
 function H(){ return HOMES[S.home] || HOMES.hostel; }
 function homePlace(){ return S.home==="hostel" ? hallId() : "lodges"; }
 function homeLabel(){ return S.home==="hostel" ? PLACE[hallId()].name+", Room 14" : H().n+", "+PLACE.lodges.name; }
-function homeSleep(){ return H().sleep + (S.own.fan?8:0) + (S.own.gen && S.home!=="hostel" ? 10 : 0); }
+function homeSleep(){ return H().sleep + (S.own.fan?8:0) + (S.own.gen && S.home!=="hostel" ? 10 : 0) + roomBonus(); }
 function landlord(){ return S.home==="hostel" ? "Hall Admin" : "Landlord"; }
 CONTACTS.land = { n:function(){ return S.home==="hostel" ? "Hall Admin" : "Landlord (Lodges)"; }, av:"🏠" };
 function payRent(){
@@ -2788,6 +2790,236 @@ $("#pscreen").addEventListener("click", function(e){
 
 if (S.job && (!JOB_BY[S.job.id] || S.job.start==null)) S.job=null;
 
+/* ===== Accounts, cloud saves, leaderboards ===== */
+var TOKEN_KEY="campusng-token", acct={ token:null, user:"" }, cloudT=0, rankType="rich", rankData={}, acctBusy=false;
+try { var _t=JSON.parse(localStorage.getItem(TOKEN_KEY)||"null"); if (_t && _t.token){ acct.token=_t.token; acct.user=_t.user||""; } } catch(e){}
+function serverMode(){ return useWs(); }
+function storeAcct(){ try { if (acct.token) localStorage.setItem(TOKEN_KEY, JSON.stringify(acct)); else localStorage.removeItem(TOKEN_KEY); } catch(e){} }
+function api(path, body, method){
+  var h={ "content-type":"application/json" }; if (acct.token) h.authorization="Bearer "+acct.token;
+  return fetch(path, { method:method||(body?"POST":"GET"), headers:h, body:body?JSON.stringify(body):undefined })
+    .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ j._status=r.status; return j; }); });
+}
+function adoptSave(data){
+  if (!data || data.v!==2) return;
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(data)); } catch(e){}
+}
+function renderAcct(){
+  var box=$("#acct"); if (!box) return;
+  var on=serverMode();
+  box.hidden=!on;
+  $("#btn-accept").hidden = on && !acct.token;
+  if (on && !acct.token) $("#btn-continue").hidden=true;
+  if (!on) return;
+  if (acct.token){ box.innerHTML='<p style="margin:0 0 12px;font-size:14px;color:var(--muted)">Signed in as <b style="color:var(--text)">@'+esc(acct.user)+'</b>. Your progress saves to your account. <button type="button" class="linkbtn" data-logout="1" style="padding:0">Log out</button></p>'; return; }
+  box.innerHTML='<p style="margin:0 0 10px;font-weight:700">Create an account or log in to save your progress on any phone.</p>'+
+    '<input class="sel" id="acct-u" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="20" placeholder="Username" style="margin-bottom:8px">'+
+    '<input class="sel" id="acct-p" type="password" autocomplete="current-password" maxlength="100" placeholder="Password (6+ characters)" style="margin-bottom:8px">'+
+    '<p id="acct-err" style="margin:0 0 8px;color:var(--bad);font-size:14px;min-height:0"></p>'+
+    '<button class="btn" type="button" data-auth="signup">Create account</button><button class="btn ghost" type="button" data-auth="login">Log in</button>';
+}
+function doAuth(kind){
+  if (acctBusy) return;
+  var u=($("#acct-u").value||"").trim(), p=$("#acct-p").value||"", err=$("#acct-err");
+  if (!/^[A-Za-z0-9_]{3,20}$/.test(u)){ err.textContent="Username must be 3 to 20 letters, numbers or underscores."; return; }
+  if (p.length<6){ err.textContent="Password must be at least 6 characters."; return; }
+  acctBusy=true; err.textContent=kind==="signup"?"Creating your account…":"Logging in…";
+  api("/api/"+kind, { username:u, password:p }).then(function(r){
+    acctBusy=false;
+    if (!r.token){ err.textContent=r.error||"Something went wrong. Try again."; return; }
+    acct.token=r.token; acct.user=r.username; storeAcct();
+    if (r.data) adoptSave(r.data);
+    goLanding();
+  }).catch(function(){ acctBusy=false; err.textContent="Can't reach the server. Check your connection."; });
+}
+function logout(){ if (acct.token) api("/api/logout",{}).catch(function(){}); acct={ token:null, user:"" }; storeAcct(); goLanding(); }
+$("#s-landing").addEventListener("click", function(e){
+  var b=e.target.closest("button"); if (!b) return;
+  if (b.dataset.auth) doAuth(b.dataset.auth); else if (b.dataset.logout) logout();
+});
+function cloudSave(force){
+  if (!serverMode() || !acct.token || (S.phase!=="play" && S.phase!=="result")) return;
+  var now=Date.now(); if (!force && now-cloudT<60000) return; cloudT=now;
+  api("/api/save", { data:S }).then(function(r){
+    if (r._status===409){
+      if (r.data){ S=Object.assign(fresh(), r.data); applyUni(); save(); renderHUD(); }
+      toast("⚠️ "+esc(r.error||"Your save was rejected")+" Your last valid save was restored.");
+    } else if (r._status===401){ acct={ token:null, user:"" }; storeAcct(); toast("You were logged out. Log in again from the start screen to keep saving."); }
+  }).catch(function(){});
+}
+function syncFromCloud(){
+  if (!serverMode() || !acct.token) return;
+  api("/api/save").then(function(r){
+    if (r._status===401){ acct={ token:null, user:"" }; storeAcct(); if (S.phase==="landing") goLanding(); return; }
+    if (r.data && S.phase==="landing"){ adoptSave(r.data); goLanding(); }
+  }).catch(function(){});
+}
+var RANKS=[["rich","Richest"],["gpa","Best GPA"],["pop","Most popular"],["uni","Schools"]];
+function loadRanks(t){
+  if (!serverMode()) return;
+  api("/api/leaderboard?type="+t).then(function(r){ rankData[t]={ rows:r.rows||[], at:Date.now() }; if (phoneOpen && phoneApp==="ranks") renderPhone(); }).catch(function(){});
+}
+function ranksApp(){
+  if (!serverMode()) return '<div class="appbody"><p class="live-empty">Leaderboards work on your game\u2019s own website, where players have accounts.</p></div>';
+  var d=rankData[rankType]; if (!d || Date.now()-d.at>60000) loadRanks(rankType);
+  var h='<div class="appbody pad"><div class="chips" style="margin-bottom:12px">'+RANKS.map(function(r){ return '<button type="button" class="chip" role="radio" aria-checked="'+(rankType===r[0])+'" data-rank="'+r[0]+'">'+r[1]+"</button>"; }).join("")+"</div>";
+  if (!d) return h+'<p class="live-empty">Loading…</p></div>';
+  if (!d.rows.length) return h+'<p class="live-empty">No one here yet. Play a few days and you could be first.</p></div>';
+  h+=d.rows.map(function(row,i){
+    var name, val;
+    if (rankType==="uni"){ name=(UNI_BY[row.uni]?UNI_BY[row.uni].short:String(row.uni||"?").toUpperCase()); val=row.players+" player"+(row.players===1?"":"s")+(row.gpa!=null?", GPA "+Number(row.gpa).toFixed(2):""); }
+    else { name=String(row.name||"Student")+" ("+(UNI_BY[row.uni]?UNI_BY[row.uni].short:"?")+")"; val= rankType==="rich" ? fmt(row.value) : rankType==="gpa" ? Number(row.value).toFixed(2) : row.value; }
+    return '<div class="tt-row'+(i<3?" now":"")+'"><b>'+(i+1)+". "+esc(name)+"</b><span>"+esc(String(val))+"</span></div>";
+  }).join("");
+  return h+"</div>";
+}
+$("#pscreen").addEventListener("click", function(e){
+  var b=e.target.closest("button"); if (!b) return;
+  if (b.dataset.rank){ rankType=b.dataset.rank; renderPhone(); }
+  else if (b.dataset.logoutme){ closePhone(); logout(); }
+});
+
+/* ===== UNILAG, courses, lecturers, Nepo/LAPO, buy mode ===== */
+var GS=["GST 111","Use of English",2,6], MTH=["MTH 101","Elementary Mathematics I",3,-4], PHY=["PHY 101","General Physics I",3,-5], CHM=["CHM 101","General Chemistry I",3,-2], BIO=["BIO 101","General Biology I",3,0], ECO=["ECO 101","Principles of Economics I",3,-1];
+function CRSE(id,fac,name,code,note,list,mods){ COURSES[id]=Object.assign({ fac:fac, name:name, code:code, note:note, list:list }, mods||{}); }
+Object.keys(COURSES).forEach(function(k){ delete COURSES[k]; });
+CRSE("cs","Science","Computer Science","CSC","Studying counts 10% extra.",[["CSC 101","Introduction to Computer Science",3,2],MTH,PHY,["STA 111","Descriptive Statistics",2,-1],GS],{prepMul:1.1});
+CRSE("mth","Science","Mathematics","MTH","Toughest maths. Studying counts 15% extra.",[MTH,["MTH 103","Vectors and Geometry",3,-5],PHY,["STA 111","Descriptive Statistics",2,-1],GS],{prepMul:1.15,examMod:-3});
+CRSE("bch","Science","Biochemistry","BCH","Lab-heavy and steady.",[["BCH 101","Introduction to Biochemistry",3,0],BIO,CHM,PHY,GS]);
+CRSE("mcb","Science","Microbiology","MCB","Lab-heavy and steady.",[["MCB 101","Introduction to Microbiology",3,1],BIO,CHM,MTH,GS]);
+CRSE("eee","Engineering","Electrical Engineering","EEG","Hard exams. Studying counts 15% extra.",[["GEG 101","Engineering Drawing I",2,-3],MTH,PHY,CHM,GS],{prepMul:1.15,examMod:-4});
+CRSE("mech","Engineering","Mechanical Engineering","MEG","Hard exams. Studying counts 15% extra.",[["GEG 101","Engineering Drawing I",2,-3],MTH,PHY,CHM,GS],{prepMul:1.15,examMod:-4});
+CRSE("civ","Engineering","Civil Engineering","CVE","Hard exams. Studying counts 10% extra.",[["GEG 101","Engineering Drawing I",2,-3],MTH,PHY,CHM,GS],{prepMul:1.1,examMod:-3});
+CRSE("chem","Engineering","Chemical Engineering","CHE","Hard exams. Studying counts 15% extra.",[["GEG 101","Engineering Drawing I",2,-3],MTH,CHM,PHY,GS],{prepMul:1.15,examMod:-4});
+CRSE("arc","Environmental Sciences","Architecture","ARC","Long studio nights. Popular with creatives.",[["ARC 101","Introduction to Architecture",3,1],["ARC 103","Graphics and Drawing",3,-2],MTH,PHY,GS],{popStart:14});
+CRSE("est","Environmental Sciences","Estate Management","ESM","Business-minded. Hustles pay 10% more.",[["ESM 101","Introduction to Estate Management",3,2],ECO,MTH,["ACC 101","Principles of Accounting I",3,-1],GS],{hustleMul:1.1});
+CRSE("med","Medicine","Medicine and Surgery","MBBS","Hardest exams. Studying counts 20% extra.",[BIO,CHM,PHY,MTH,GS],{prepMul:1.2,examMod:-6,repStart:4});
+CRSE("pha","Pharmacy","Pharmacy","PHA","Hard exams. Studying counts 15% extra.",[["PHA 101","Introduction to Pharmacy",2,0],BIO,CHM,PHY,GS],{prepMul:1.15,examMod:-4});
+CRSE("nur","Medicine","Nursing","NSC","Caring and respected.",[["NSC 101","Foundations of Nursing",3,1],BIO,CHM,PHY,GS],{repStart:6});
+CRSE("law","Law","Law","LAW","You start with a better reputation.",[["LAW 101","Legal Methods I",4,-3],["POL 101","Introduction to Political Science",3,1],["PHI 101","Introduction to Logic",2,-2],ECO,GS],{repStart:8,examMod:-2});
+CRSE("acc","Management Sciences","Accounting","ACC","Hustles pay 20% more.",[["ACC 101","Principles of Accounting I",3,-1],ECO,MTH,["BUS 101","Introduction to Business",3,2],GS],{hustleMul:1.2});
+CRSE("bus","Management Sciences","Business Administration","BUS","Hustles pay 15% more.",[["BUS 101","Introduction to Business",3,2],ECO,["ACC 101","Principles of Accounting I",3,-1],MTH,GS],{hustleMul:1.15});
+CRSE("fin","Management Sciences","Finance","FIN","Hustles pay 15% more.",[["FIN 101","Introduction to Finance",3,0],ECO,MTH,["ACC 101","Principles of Accounting I",3,-1],GS],{hustleMul:1.15});
+CRSE("eco","Social Sciences","Economics","ECO","Steady and respected.",[ECO,["ECO 103","Introduction to Statistics for Economists",3,-3],MTH,["POL 101","Introduction to Political Science",3,1],GS],{repStart:3});
+CRSE("mac","Social Sciences","Mass Communication","MAC","You start more popular.",[["MAC 101","Introduction to Mass Communication",3,2],["MAC 103","Principles of News Writing",3,0],["ENG 101","Introduction to Literature",2,1],["SOC 101","Introduction to Sociology",3,0],GS],{popStart:22});
+CRSE("psy","Social Sciences","Psychology","PSY","Understands people. Popularity grows a little faster.",[["PSY 101","Introduction to Psychology",3,1],["SOC 101","Introduction to Sociology",3,0],BIO,["STA 111","Descriptive Statistics",2,-1],GS],{popStart:14});
+CRSE("pol","Social Sciences","Political Science","POL","Born for student politics.",[["POL 101","Introduction to Political Science",3,1],["PHI 101","Introduction to Logic",2,-2],ECO,["HIS 101","Nigerian History",3,1],GS],{popStart:16});
+CRSE("eng","Arts","English","ENG","Easier exams. Lots of reading.",[["ENG 101","Introduction to Literature",2,1],["ENG 103","Use of English Grammar",3,2],["LIN 101","Introduction to Linguistics",3,0],["HIS 101","Nigerian History",3,1],GS],{examMod:2});
+CRSE("cca","Arts","Creative Arts","CCA","Creative and popular.",[["CCA 101","Introduction to Theatre",3,2],["CCA 103","Music Appreciation",3,1],["ENG 101","Introduction to Literature",2,1],["HIS 101","Nigerian History",3,1],GS],{popStart:20,examMod:2});
+CRSE("edu","Education","Education (Science)","EDU","Easier exams. Future teacher.",[["EDU 101","Introduction to Teaching",3,2],BIO,CHM,MTH,GS],{examMod:2});
+if (!COURSES[S.course]) S.course="cs";
+
+var FIRST=["Adebayo","Ngozi","Ibrahim","Funmilayo","Chukwuemeka","Aisha","Olumide","Chiamaka","Tunde","Folake","Emeka","Hauwa","Segun","Nkechi","Yusuf","Bisola","Kelechi","Zainab","Kayode","Ifeoma"];
+var LAST=["Ogunleye","Okafor","Musa","Adeyemi","Obi","Bello","Bankole","Eze","Afolabi","Nwosu","Danjuma","Oyelaran","Uchenna","Lawal","Okonkwo","Adewale","Ibekwe","Sani","Fashanu","Akinola"];
+var TITLES=["Prof.","Prof.","Dr.","Dr.","Dr.","Mr.","Mrs."];
+var TRAITS_L=["strict about attendance","famous for surprise tests","funny, but marks hard","reads every slide word for word","always 30 minutes late","the kindest lecturer in the faculty","says 'it will come out in exams' a lot"];
+function lect(code){ var h=0; for (var i=0;i<code.length;i++) h=(h*31+code.charCodeAt(i))>>>0; return { n:TITLES[h%TITLES.length]+" "+FIRST[(h>>3)%FIRST.length]+" "+LAST[(h>>7)%LAST.length], t:TRAITS_L[(h>>11)%TRAITS_L.length] }; }
+
+/* UNILAG names for the campus */
+PLACE.lake.name="Lagoon Front"; PLACE.health.name="Medical Centre"; PLACE.lt.name="Main Auditorium"; PLACE.senate.name="Senate House";
+PLACE_DESC.lake="Benches, palm trees and the breeze off the Lagos Lagoon."; PLACE_DESC.lt="The big hall. Lectures, tests, matriculation and exams happen here."; PLACE_DESC.senate="UNILAG's tallest building. If you can see it, you're not lost.";
+S.uni="unilag";
+
+/* Birth lottery: Nepo or LAPO */
+function rollBackground(){
+  var nepo=Math.random()<0.3, own=S.own||{};
+  S.bg=nepo?"nepo":"lapo";
+  if (nepo){
+    var lo=Math.log(400000), hi=Math.log(10000000);
+    S.cash=Math.round(Math.exp(lo+Math.random()*(hi-lo))/1000)*1000;
+    S.home=S.cash>=3000000?"miniflat":"selfcon"; S.pop+=6;
+    S.allowance=clamp(Math.round(S.cash*0.02/1000)*1000,20000,200000);
+    if (S.cash>=5000000 && !own.car){ own.car=1; S.car={ owned:true, day:S.day, x:-12, z:84, yaw:Math.PI/2, c:[0.15,0.15,0.16] }; }
+    S.log.push("Born a Nepo student with "+fmt(S.cash)+".");
+  } else {
+    S.cash=Math.round((25000+Math.random()*95000)/500)*500; S.home="hostel"; S.allowance=0;
+    S.log.push("Arrived as a LAPO student with "+fmt(S.cash)+".");
+  }
+  S.own=own;
+}
+function bgLabel(){ return S.bg==="nepo" ? "Nepo student 💎" : "LAPO student 🙏"; }
+function bgIntro(){
+  return S.bg==="nepo"
+    ? "Birth lottery: you're a Nepo student. Your parents sent "+fmt(S.cash)+(S.home==="miniflat"?" and rented you a mini flat in Akoka":" and a self-contain in Akoka")+(S.car&&S.car.owned?", plus a car":"")+". Your allowance is "+fmt(S.allowance)+" every Saturday."
+    : "Birth lottery: you're a LAPO student. You arrived at UNILAG with "+fmt(S.cash)+" and a hostel bed. Every naira counts.";
+}
+function payAllowance(){
+  if (S.allowance>0){ var d=apply({ cash:S.allowance }, "Weekly allowance"); incoming("mum","Your weekly allowance of "+fmt(S.allowance)+" has been sent. Spend wisely ❤️",null,true); toast("💸 Allowance from home.", d); }
+  else if (Math.random()<0.35){ var d2=apply({ cash:3000 }, "From Mummy"); incoming("mum","I managed to send ₦3,000. It's not much, but use it for food 🙏",null,true); toast("💸 Mummy sent something small.", d2); }
+}
+
+/* Buy mode */
+var FURN = {
+  mattress:{n:"Foam mattress",c:"Sleep",p:18000,st:1,pt:[[0,0,0,1.4,0.25,2.1,"#E9E2F2"]]},
+  springbed:{n:"Spring bed",c:"Sleep",p:85000,st:3,pt:[[0,0,0,1.6,0.35,2.2,"#6B4F2A"],[0,0.35,0,1.5,0.3,2.1,"#F4F4F4"],[0,0,-1.05,1.6,1.1,0.12,"#6B4F2A"]]},
+  kingbed:{n:"King-size bed",c:"Sleep",p:450000,st:5,pt:[[0,0,0,2.2,0.4,2.4,"#3A2A1E"],[0,0.4,0,2.1,0.35,2.3,"#F7F3EA"],[0,0,-1.15,2.3,1.5,0.15,"#2A1E16"],[-0.5,0.75,-0.8,0.7,0.15,0.4,"#C0392B"],[0.5,0.75,-0.8,0.7,0.15,0.4,"#C0392B"]]},
+  pchair:{n:"Plastic chair",c:"Comfort",p:2500,st:1,pt:[[0,0,0,0.5,0.45,0.5,"#E5484D"],[0,0.45,-0.22,0.5,0.5,0.06,"#E5484D"]]},
+  beanbag:{n:"Bean bag",c:"Comfort",p:25000,st:2,pt:[[0,0,0,0.9,0.55,0.9,"#8E44AD"]]},
+  sofa:{n:"3-seater sofa",c:"Comfort",p:180000,st:3,pt:[[0,0,0,2.4,0.45,0.9,"#1E5AA8"],[0,0.45,-0.35,2.4,0.5,0.2,"#1E5AA8"],[-1.15,0.45,0,0.15,0.3,0.9,"#174A8A"],[1.15,0.45,0,0.15,0.3,0.9,"#174A8A"]]},
+  recliner:{n:"Leather recliner",c:"Comfort",p:350000,st:4,pt:[[0,0,0,1,0.5,1,"#4A2E1C"],[0,0.5,-0.4,1,0.7,0.2,"#4A2E1C"]]},
+  kstove:{n:"Kerosene stove",c:"Kitchen",p:9000,st:1,pt:[[0,0,0,0.5,0.35,0.5,"#2B4CC0"],[0,0.35,0,0.45,0.05,0.45,"#222222"]]},
+  gas:{n:"Gas cooker",c:"Kitchen",p:65000,st:2,pt:[[0,0,0,0.8,0.85,0.7,"#DDDDDD"],[0,0.85,0,0.8,0.04,0.7,"#222222"]]},
+  fridge:{n:"Mini fridge",c:"Kitchen",p:160000,st:3,pt:[[0,0,0,0.7,1.1,0.7,"#F4F4F4"],[0.25,0.55,0.36,0.04,0.4,0.02,"#888888"]]},
+  lamp:{n:"Rechargeable lamp",c:"Light",p:6000,st:1,pt:[[0,0,0,0.3,0.4,0.3,"#FFF3C4",1]]},
+  slamp:{n:"Standing lamp",c:"Light",p:28000,st:2,pt:[[0,0,0,0.1,1.5,0.1,"#333333"],[0,1.5,0,0.45,0.35,0.45,"#FFF3C4",1]]},
+  led:{n:"LED strip lights",c:"Light",p:15000,st:2,pt:[[0,0.05,0,2.4,0.06,0.06,"#FF4FD8",1],[0,0.05,0.1,2.4,0.06,0.06,"#3DF2FF",1]]},
+  tv:{n:"32-inch TV",c:"Tech",p:150000,st:3,pt:[[0,0,0,1.2,0.55,0.4,"#5A3A22"],[0,0.55,0,1.1,0.65,0.06,"#111111"],[0,0.6,0.04,1.0,0.55,0.02,"#3D6EA8",0.8]]},
+  sound:{n:"Sound system",c:"Tech",p:90000,st:3,pt:[[-0.5,0,0,0.4,0.9,0.4,"#151515"],[0.5,0,0,0.4,0.9,0.4,"#151515"],[0,0,0,0.5,0.3,0.4,"#222222"]]},
+  ps5:{n:"PlayStation 5",c:"Tech",p:900000,st:4,pt:[[0,0,0,0.2,0.5,0.4,"#F4F4F4"],[0.4,0,0.3,0.25,0.06,0.15,"#111111"]]},
+  ac:{n:"Split AC",c:"Tech",p:650000,st:5,pt:[[0,2.1,0,1.1,0.35,0.3,"#F4F4F4"]]},
+  solar:{n:"Inverter and solar battery",c:"Tech",p:1500000,st:5,pt:[[0,0,0,0.8,0.9,0.5,"#222831"],[0,0.65,0.26,0.4,0.15,0.02,"#45C985",1]]},
+  poster:{n:"Afrobeats poster",c:"Decor",p:3000,st:1,pt:[[0,1.2,0,0.8,1.0,0.04,"#F2C230"]]},
+  plant:{n:"Potted plant",c:"Decor",p:12000,st:1,pt:[[0,0,0,0.4,0.4,0.4,"#8A5A35"],[0,0.4,0,0.6,0.7,0.6,"#3E8E3E"]]},
+  rug:{n:"Persian rug",c:"Decor",p:60000,st:2,pt:[[0,0,0,2.2,0.03,1.6,"#8B1E2B"],[0,0.01,0,1.8,0.03,1.2,"#C9A86E"]]},
+  aquarium:{n:"Aquarium",c:"Decor",p:250000,st:4,pt:[[0,0,0,1.2,0.7,0.5,"#2A1E16"],[0,0.7,0,1.1,0.6,0.45,"#5EC4E8",0.5],[0.2,0.9,0,0.12,0.06,0.04,"#F28C28",0.5]]},
+  dog:{n:"Bingo the local dog",c:"Pets",p:40000,st:3,pt:[[0,0.2,0,0.3,0.3,0.7,"#B98A5A"],[0,0.45,0.4,0.25,0.25,0.3,"#B98A5A"],[-0.1,0,-0.25,0.08,0.22,0.08,"#8A6A44"],[0.1,0,-0.25,0.08,0.22,0.08,"#8A6A44"],[-0.1,0,0.25,0.08,0.22,0.08,"#8A6A44"],[0.1,0,0.25,0.08,0.22,0.08,"#8A6A44"]]},
+  cat:{n:"Mimi the cat",c:"Pets",p:20000,st:2,pt:[[0,0.12,0,0.22,0.22,0.5,"#F4F4F4"],[0,0.3,0.28,0.2,0.2,0.2,"#F4F4F4"],[0,0.3,-0.3,0.05,0.3,0.05,"#DDDDDD"]]},
+  parrot:{n:"African grey parrot",c:"Pets",p:300000,st:4,pt:[[0,0,0,0.06,1.3,0.06,"#6B4F2A"],[0,1.3,0,0.5,0.05,0.06,"#6B4F2A"],[0,1.35,0,0.18,0.3,0.2,"#9AA0A6"],[0,1.35,-0.12,0.1,0.15,0.08,"#C0392B"]]},
+  mirror:{n:"Gold-framed mirror",c:"Luxury",p:400000,st:4,pt:[[0,0.3,0,0.9,1.6,0.08,"#C9A227"],[0,0.4,0.05,0.75,1.4,0.02,"#CFE6FF",0.4]]},
+  dwardrobe:{n:"Designer wardrobe",c:"Luxury",p:1200000,st:5,pt:[[0,0,0,1.8,2.2,0.6,"#1A1A1A"],[-0.45,0.15,0.31,0.03,1.9,0.02,"#C9A227"],[0.45,0.15,0.31,0.03,1.9,0.02,"#C9A227"]]},
+  chandelier:{n:"Crystal chandelier",c:"Luxury",p:2500000,st:5,pt:[[0,2.3,0,0.05,0.4,0.05,"#C9A227"],[0,2.0,0,0.8,0.3,0.8,"#FFF3C4",1]]}
+};
+var FCATS=["Sleep","Comfort","Kitchen","Light","Tech","Decor","Pets","Luxury"], fcat="Sleep", FMESH={}, buyNote=null;
+function fmesh(t){ if (!FMESH[t]){ var g=new GB(); FURN[t].pt.forEach(function(p){ g.blk(p[0],p[1],p[2],p[3],p[4],p[5],hexc(p[6],p[7]||0)); }); FMESH[t]=GLX.mesh(g.a); } return FMESH[t]; }
+function roomBonus(){ var s=0; (S.furn||[]).forEach(function(f){ if (FURN[f.t]) s+=FURN[f.t].st; }); return Math.min(25,s); }
+function drawFurniture(){
+  if (S.phase!=="play" || !S.inside || S.inside!==homePlace() || !S.furn) return;
+  var r=IN[S.inside]; if (!r) return;
+  S.furn.forEach(function(f){ if (!FURN[f.t]) return; M4.set(_Q); M4.tr(_Q,r.cx+f.x,0,r.cz+f.z); M4.ry(_Q,(f.r|0)*Math.PI/2); GLX.draw(fmesh(f.t),_Q); });
+}
+function placeSpot(){
+  var r=IN[homePlace()], x=S.x+Math.sin(S.yaw)*1.6-r.cx, z=S.z+Math.cos(S.yaw)*1.6-r.cz;
+  x=clamp(Math.round(x*2)/2,-r.w/2+0.8,r.w/2-0.8); z=clamp(Math.round(z*2)/2,-r.d/2+0.8,r.d/2-0.8);
+  return [x,z,(Math.round((S.yaw+Math.PI)/(Math.PI/2))%4+4)%4];
+}
+function openBuy(){ buyNote=null; sheetMode="buy"; renderBuy(); openSheet(); }
+function renderBuy(){
+  S.furn=S.furn||[];
+  var h='<p class="sh-k">Buy mode</p><h2 class="sh-t" id="sh-t" tabindex="-1">Decorate your room</h2><div class="statline"><span>'+fmt(S.cash)+'</span><span>Room rating '+roomBonus()+'/25</span><span>+'+roomBonus()+' energy when you sleep</span></div>';
+  if (buyNote) h+='<p class="note">'+esc(buyNote)+"</p>";
+  h+='<div class="chips" style="margin-bottom:10px">'+FCATS.map(function(c){ return '<button type="button" class="chip" role="radio" aria-checked="'+(fcat===c)+'" data-fcat="'+c+'">'+c+"</button>"; }).join("")+"</div>";
+  h+='<div class="choices">'+Object.keys(FURN).filter(function(k){ return FURN[k].c===fcat; }).map(function(k){ var it=FURN[k];
+    return '<button type="button" class="choice" data-fbuy="'+k+'"'+(S.cash<it.p?" disabled":"")+'><span>'+esc(it.n)+'<span class="why">'+"★".repeat(it.st)+"☆".repeat(5-it.st)+". Placed in front of you.</span></span><span class=\"cost\">"+fmt(it.p)+"</span></button>"; }).join("")+"</div>";
+  if (S.furn.length){
+    h+='<p class="sh-k" style="margin-top:16px">In your room</p>'+S.furn.map(function(f,i){ var it=FURN[f.t]; if (!it) return "";
+      return '<div class="tt-row"><b>'+esc(it.n)+'</b><span><button type="button" class="linkbtn" data-fmove="'+i+'">Move here</button><button type="button" class="linkbtn" data-frot="'+i+'">Turn</button><button type="button" class="linkbtn" data-fsell="'+i+'">Sell '+fmt(it.p/2)+"</button></span></div>"; }).join("");
+  }
+  h+='<button type="button" class="btn ghost" data-close="1">Done</button>';
+  $("#sheet").innerHTML=h;
+}
+$("#sheet").addEventListener("click", function(e){
+  var b=e.target.closest("button"); if (!b || b.disabled || sheetMode!=="buy") return;
+  S.furn=S.furn||[];
+  if (b.dataset.fcat){ fcat=b.dataset.fcat; buyNote=null; }
+  else if (b.dataset.fbuy){ var it=FURN[b.dataset.fbuy]; if (!it || S.cash<it.p) return; var sp=placeSpot(); apply({ cash:-it.p }, it.n); S.furn.push({ t:b.dataset.fbuy, x:sp[0], z:sp[1], r:sp[2] }); buyNote="Bought and placed: "+it.n+". Walk somewhere else and tap Move here to reposition it."; }
+  else if (b.dataset.fmove){ var f=S.furn[+b.dataset.fmove], s2=placeSpot(); if (f){ f.x=s2[0]; f.z=s2[1]; f.r=s2[2]; buyNote="Moved."; } }
+  else if (b.dataset.frot){ var f2=S.furn[+b.dataset.frot]; if (f2){ f2.r=((f2.r|0)+1)%4; buyNote="Turned."; } }
+  else if (b.dataset.fsell){ var i=+b.dataset.fsell, f3=S.furn[i]; if (f3 && FURN[f3.t]){ apply({ cash:FURN[f3.t].p/2 }, "Sold "+FURN[f3.t].n); S.furn.splice(i,1); buyNote="Sold for half price."; } }
+  else return;
+  save(); renderHUD(); renderBuy();
+});
+var _cs=$("#creator"); _cs.addEventListener("change", function(e){ if (e.target.id==="in-course" && COURSES[e.target.value]) S.course=e.target.value; });
+
 /* ===== Campus NG v2: phone, screens, loop ===== */
 function openPhone(app, arg){
   if (S.phase!=="play" || dayEnding) return;
@@ -2799,7 +3031,7 @@ function closePhone(){ phoneOpen=false; $("#phone").hidden=true; mapSel=null; }
 $("#btn-phone").addEventListener("click", function(){ openPhone("home"); });
 $("#btn-map").addEventListener("click", function(){ openPhone("map"); });
 
-var APPS=[["jobs","Jobs","💼","#C2410C"],["bag","Bag","🎒","#B5402F"],["house","Home","🏠","#0F5132"],["chats","Chats","💬","#1E9E5A"],["live","Campus Live","📡","#8E44AD"],["wallet","Wallet","💳","#2347C5"],["map","Map","🗺️","#0F8B8D"],["tt","Timetable","📅","#F28C28"],["me","Me","👤","#56627F"]];
+var APPS=[["ranks","Ranks","🏆","#B7791F"],["jobs","Jobs","💼","#C2410C"],["bag","Bag","🎒","#B5402F"],["house","Home","🏠","#0F5132"],["chats","Chats","💬","#1E9E5A"],["live","Campus Live","📡","#8E44AD"],["wallet","Wallet","💳","#2347C5"],["map","Map","🗺️","#0F8B8D"],["tt","Timetable","📅","#F28C28"],["me","Me","👤","#56627F"]];
 function sbar(){ return '<div class="sbar"><span>'+t12(S.min)+'</span><span>'+esc(UNI().short)+' WiFi ▂▄▆ 🔋</span></div>'; }
 function head(title, sub, backTo){ return '<div class="apphead"><button type="button" data-nav="'+(backTo||"home")+'" aria-label="Back">‹</button><div class="ttl">'+esc(title)+(sub?"<small>"+esc(sub)+"</small>":"")+'</div><button type="button" data-nav="close" aria-label="Close phone">✕</button></div>'; }
 function totalUnread(){ var n=0; for (var k in S.chats) n+=S.chats[k].unread||0; return n; }
@@ -2854,11 +3086,12 @@ function renderPhone(){
       rows+='<div class="tt-day">'+(d===S.day?"Today, ":"")+DOW[dow(d)]+" (Day "+d+")</div>";
       if (!isWeekday(d)){ rows+='<div class="tt-row"><b>No lectures</b><span>'+(S.flags.extra===d?"Extra class 7AM":"Weekend")+"</span></div>"; continue; }
       [0,1].forEach(function(s){ var L=lectureAt(d,s), now=d===S.day&&S.min>=L.start-30&&S.min<=L.start+30, done=d===S.day&&S.today["lec"+s];
-        rows+='<div class="tt-row'+(now?" now":"")+'"><div><b>'+L.code+"</b><br><span>"+esc(L.title)+'</span></div><span>'+hr(L.start)+"<br>"+(done?"Attended ✓":"1K Hall")+"</span></div>"; });
+        rows+='<div class="tt-row'+(now?" now":"")+'"><div><b>'+L.code+"</b><br><span>"+esc(L.title)+"<br>"+esc(lect(L.code).n)+'</span></div><span>'+hr(L.start)+"<br>"+(done?"Attended ✓":"Main Auditorium")+"</span></div>"; });
     }
-    rows+='<div class="tt-day">Exams</div><div class="tt-row"><b>All courses</b><span>Day 15, 1K Hall</span></div>';
+    rows+='<div class="tt-day">Exams</div><div class="tt-row"><b>All courses</b><span>Day 15, Main Auditorium</span></div>';
     h+='<div class="appbody pad">'+rows+'<p class="live-empty" style="padding:8px 0">Attendance so far: '+S.attended+" of "+LECTURES+" lectures.</p></div>";
   }
+  else if (phoneApp==="ranks"){ h+=head("Leaderboards","Last 30 days"); h+=ranksApp(); }
   else if (phoneApp==="jobs"){ h+=head("Jobs", myJob()?jobTitle():"Find work"); h+=jobsApp(); }
   else if (phoneApp==="bag"){ h+=head("Bag", fmt(S.cash)); h+=bagApp(); }
   else if (phoneApp==="house"){ h+=head("Home", H().n); h+=houseApp(); }
@@ -2867,8 +3100,8 @@ function renderPhone(){
     var meter=function(lbl,v,col){ return '<div class="meter"><div class="row"><span>'+lbl+"</span><span>"+Math.round(v)+'</span></div><div class="bar"><b style="width:'+clamp(v,0,100)+"%;background:"+col+'"></b></div></div>'; };
     h+='<div class="appbody pad">'+meter("⚡ Energy",S.energy,"#127A43")+meter("🍛 Food",S.food,"#E6A817")+meter("🚿 Freshness",S.fresh,"#0F8B8D")+meter("🎉 Vibes",S.vibes,"#8E44AD")+
       meter("📚 Exam readiness",S.prep,"#2347C5")+meter("⭐ Popularity",S.pop,"#F28C28")+
-      '<div class="tt-row"><b>University</b><span>'+esc(UNI().short)+'</span></div><div class="tt-row"><b>Job</b><span>'+(S.job&&JOB_BY[S.job.id]?esc(jobTitle()):"None yet. Open the Jobs app")+'</span></div><div class="tt-row"><b>Reputation</b><span>'+repLabel(S.rep)+'</span></div><div class="tt-row"><b>Lectures attended</b><span>'+S.attended+" of "+LECTURES+'</span></div><div class="tt-row"><b>Home</b><span>'+esc(homeLabel())+"</span></div>"+
-      '<button type="button" class="btn" style="margin-top:12px" data-look="1">Change your look</button><button type="button" class="btn ghost" data-restart="1">'+(restartArm?"Tap again to start over":"Start over")+"</button></div>";
+      '<div class="tt-row"><b>Background</b><span>'+esc(bgLabel())+'</span></div><div class="tt-row"><b>University</b><span>'+esc(UNI().short)+'</span></div><div class="tt-row"><b>Job</b><span>'+(S.job&&JOB_BY[S.job.id]?esc(jobTitle()):"None yet. Open the Jobs app")+'</span></div><div class="tt-row"><b>Reputation</b><span>'+repLabel(S.rep)+'</span></div><div class="tt-row"><b>Lectures attended</b><span>'+S.attended+" of "+LECTURES+'</span></div><div class="tt-row"><b>Home</b><span>'+esc(homeLabel())+"</span></div>"+
+      '<button type="button" class="btn" style="margin-top:12px" data-look="1">Change your look</button>'+(serverMode()&&acct.token?'<button type="button" class="btn ghost" data-logoutme="1">Log out @'+esc(acct.user)+'</button>':'')+'<button type="button" class="btn ghost" data-restart="1">'+(restartArm?"Tap again to start over":"Start over")+"</button></div>";
   }
   sc.innerHTML=h;
   var th=document.getElementById("thread"); if (th) th.scrollTop=th.scrollHeight;
@@ -2937,7 +3170,7 @@ function renderCreator(){
   var L=S.look, h='<h2>'+(editingLook?"Change your look":"Create your student")+'</h2><p class="sub">'+(editingLook?"Fresh fit, same person.":"This is you on campus. Other players will see you like this.")+"</p>";
   if (!editingLook){
     h+='<div class="fld"><label class="lab" for="in-name">Your name</label><input class="input" id="in-name" maxlength="16" autocomplete="off" placeholder="Fresher" value="'+esc(S.name||"")+'"></div>';
-    h+='<div class="fld"><label class="lab" for="in-uni">University</label><select class="sel" id="in-uni">'+[["F","Federal"],["S","State"],["P","Private"]].map(function(t){ return '<optgroup label="'+t[1]+'">'+UNIS.filter(function(u){ return u[4]===t[0]; }).map(function(u){ return '<option value="'+u[0]+'"'+(S.uni===u[0]?" selected":"")+'>'+esc(u[1])+" ("+u[2]+")</option>"; }).join("")+"</optgroup>"; }).join("")+'</select></div>';
+    h+='<div class="fld"><div class="lab">University</div><p style="margin:0;font-weight:700">University of Lagos (UNILAG), Akoka</p></div>';
     h+='<div class="fld"><div class="lab">You are</div><div class="chips" role="radiogroup">'+opt("gender","m","Male","Jaja Hall",S.gender==="m")+opt("gender","f","Female","Moremi Hall",S.gender==="f")+"</div></div>";
   }
   h+='<div class="fld"><div class="lab">Skin tone</div><div class="chips" role="radiogroup">'+SKINS.map(function(c,i){ return sw("skin",i,c,L.skin===i,"Skin tone "+(i+1)); }).join("")+"</div></div>";
@@ -2946,7 +3179,8 @@ function renderCreator(){
   h+='<div class="fld"><div class="lab">Top colour</div><div class="chips" role="radiogroup">'+TOPS.map(function(c,i){ return sw("top",i,c,L.top===i,"Top colour "+(i+1)); }).join("")+"</div></div>";
   h+='<div class="fld"><div class="lab">Trousers or skirt</div><div class="chips" role="radiogroup">'+BOTS.map(function(c,i){ return sw("bot",i,c,L.bot===i,"Bottom colour "+(i+1)); }).join("")+"</div></div>";
   if (!editingLook){
-    h+='<div class="fld"><div class="lab">Course</div><div class="chips" role="radiogroup">'+Object.keys(COURSES).map(function(k){ return opt("course",k,COURSES[k].name,COURSES[k].note,S.course===k); }).join("")+"</div></div>";
+    var facs=[]; Object.keys(COURSES).forEach(function(k){ if (facs.indexOf(COURSES[k].fac)<0) facs.push(COURSES[k].fac); });
+    h+='<div class="fld"><label class="lab" for="in-course">Course</label><select class="sel" id="in-course">'+facs.map(function(f){ return '<optgroup label="Faculty of '+esc(f)+'">'+Object.keys(COURSES).filter(function(k){ return COURSES[k].fac===f; }).map(function(k){ return '<option value="'+k+'"'+(S.course===k?" selected":"")+'>'+esc(COURSES[k].name)+"</option>"; }).join("")+"</optgroup>"; }).join("")+'</select><p style="margin:6px 0 0;font-size:13px;color:var(--muted)">'+esc(COURSES[S.course].note)+'</p></div>';
     h+='<div class="fld"><div class="lab">Personality</div><div class="chips" role="radiogroup">'+Object.keys(TRAITS).map(function(k){ return opt("trait",k,TRAITS[k].name,TRAITS[k].note,S.trait===k); }).join("")+"</div></div>";
   }
   var sc=$("#creator").scrollTop; $("#creator").innerHTML=h; $("#creator").scrollTop=sc;
@@ -2973,15 +3207,15 @@ $("#btn-enter").addEventListener("click", function(){
   startSemester();
 });
 function startSemester(){
-  var keep={ name:S.name, gender:S.gender, look:S.look, course:S.course, trait:S.trait, muted:S.muted, uni:S.uni };
+  var keep={ name:S.name, gender:S.gender, look:S.look, course:S.course, trait:S.trait, muted:S.muted, uni:"unilag" };
   var keepOwn=S.own||{}, keepCar=(S.car&&S.car.owned)?S.car:null;
   S=fresh(); Object.assign(S,keep); S.own=keepOwn; S.car=keepCar; applyUni();
-  var c=CRS(); S.pop=c.popStart; S.rep=c.repStart; S.cash=startCash();
+  var c=CRS(); S.pop=c.popStart; S.rep=c.repStart; S.cash=startCash(); rollBackground();
   S.phase="play"; S.x=Math.round((Math.random()*6-3)*10)/10; S.z=40+Math.round(Math.random()*40)/10; S.yaw=Math.PI; camYaw=Math.PI; liveLog=[];
-  save(); showHUD(true); renderHUD(); sendPresence(true);
+  save(); showHUD(true); renderHUD(); sendPresence(true); cloudSave(true);
   dayEnding=true;
   connectWs();
-  showDayCard("Day 1", "Monday, resumption at "+UNI().short, "You arrived at the main gate of "+UNI().name+" with your bags, "+fmt(S.cash)+" and big dreams.", function(){ dayEnding=false; startDay(); });
+  showDayCard("Day 1", "Monday, resumption at "+UNI().short, bgIntro(), function(){ dayEnding=false; startDay(); });
 }
 
 /* ---------- Landing ---------- */
@@ -2993,6 +3227,7 @@ function goLanding(){
   else if (saved && saved.phase==="result"){ b.hidden=false; b.textContent="See your last result"; }
   else b.hidden=true;
   sendPresence(true);
+  renderAcct();
 }
 $("#btn-accept").addEventListener("click", function(){
   var saved=load(); if (saved){ S.name=saved.name; S.gender=saved.gender; S.look=saved.look; S.course=saved.course; S.trait=saved.trait; if (saved.uni) S.uni=saved.uni; }
@@ -3001,7 +3236,7 @@ $("#btn-accept").addEventListener("click", function(){
 $("#btn-continue").addEventListener("click", function(){
   var saved=load(); if (!saved) return; S=saved; $("#s-landing").hidden=true;
   if (S.phase==="result"){ renderResult(false); showResult(); return; }
-  camYaw=S.yaw; applyUni(); showHUD(true); renderHUD(); connectWs(); sendPresence(true);
+  S.uni="unilag"; camYaw=S.yaw; applyUni(); showHUD(true); renderHUD(); connectWs(); sendPresence(true);
 });
 
 /* ---------- Exams and result ---------- */
@@ -3019,7 +3254,7 @@ function writeExams(){
   });
   var tu=rows.reduce(function(a,r){ return a+r.units; },0), gp=rows.reduce(function(a,r){ return a+r.pts*r.units; },0)/tu;
   S.results={ rows:rows, gpa:Math.round(gp*100)/100, caught:caught };
-  S.phase="result"; save();
+  S.phase="result"; save(); cloudSave(true);
   renderResult(true); showResult();
 }
 function stampText(R){
@@ -3064,7 +3299,7 @@ function loop(t){
     else { pAmp=Math.max(0,pAmp-dt*5); moving=false; }
     hudT+=dt; if (hudT>0.25){ hudT=0; renderHUD(); }
     actT+=dt; if (actT>0.15){ actT=0; updateActs(); sendPresence(false); }
-    saveT+=dt; if (saveT>5){ saveT=0; save(); }
+    saveT+=dt; if (saveT>5){ saveT=0; save(); cloudSave(false); }
   }
   updateNpcs(dt); updateRemotes(dt); vehT+=dt;
   if (glOk){ drawScene(t); updateLabels(); }
@@ -3085,6 +3320,7 @@ function loop(t){
   document.addEventListener("visibilitychange", function(){ if (!document.hidden) last=performance.now(); });
   if (S.phase==="play" || S.phase==="result" || S.phase==="create") { S.phase=S.phase==="create"?"landing":S.phase; }
   goLanding();
+  syncFromCloud();
   initRoom();
   requestAnimationFrame(loop);
 })();
