@@ -25,7 +25,7 @@ function cleanPresence(p) {
     n: cleanText(p.n, 16) || "Student",
     x: num(p.x, -80, 700, 0), z: num(p.z, -80, 700, 0), r: num(p.r, -20, 20, 0),
     m: p.m ? 1 : 0, k, p: p.p === "play" ? "play" : "menu",
-    u: cleanText(p.u, 12), i: cleanText(p.i, 12)
+    u: cleanText(p.u, 12), i: cleanText(p.i, 12), v: ["car","keke","okada","danfo"].includes(p.v) ? p.v : ""
   };
 }
 

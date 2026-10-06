@@ -299,6 +299,7 @@ td.g{font-weight:800;text-align:center;font-size:15px} th.g{text-align:center} t
 <div class="fabs" id="fabs" hidden>
   <button class="fab" id="btn-phone" type="button" aria-label="Open phone">📱<span class="badge" id="ph-badge" hidden>0</span></button>
   <button class="fab" id="btn-map" type="button" aria-label="Campus map">🗺️</button>
+  <button class="fab" id="btn-ride" type="button" aria-label="Get a ride">🛺</button>
   <button class="fab" id="btn-say" type="button" aria-label="Say something">💬</button>
 </div>
 <div id="joy" hidden><div id="joy-k"></div></div>
@@ -829,6 +830,7 @@ function buildWorld(){
       g.cyl(x,0,z,0.07,0.07,4.2,5,DARK); g.box(x,4.25,z,0.5,0.25,0.5,C("#FFF3C4",1));
     }
   });
+  buildTown(g);
   buildInteriors(g);
   return GLX.mesh(g.a);
 }
@@ -929,6 +931,138 @@ function envAt(h){
   var ang = lerp(0.35, 1.0, day);
   var L=[0.45, ang, 0.32], l=Math.hypot(L[0],L[1],L[2]);
   return { sky:sky, sun:sun, amb:amb, light:[L[0]/l,L[1]/l,L[2]/l], fog:[70,190], night:1-day };
+}
+
+/* ===== Town outside the gate ===== */
+ROADS[0].z1 = 140;
+ROADS.push({ x0:-40, z0:95, x1:40, z1:95 }, { x0:-40, z0:140, x1:40, z1:140 }, { x0:-40, z0:95, x1:-40, z1:140 }, { x0:40, z0:95, x1:40, z1:140 });
+NODES.t0=[0,95]; NODES.tw0=[-40,95]; NODES.te0=[40,95]; NODES.t1=[0,140]; NODES.tw1=[-40,140]; NODES.te1=[40,140];
+EDGES.push(["gate","t0"],["t0","tw0"],["t0","te0"],["t0","t1"],["tw0","tw1"],["te0","te1"],["t1","tw1"],["t1","te1"]);
+VEH_PATHS.push(["gate","t0","te0","te1","t1","tw1","tw0","t0","gate"], ["t0","tw0","tw1","t1","te1","te0","t0"]);
+var TOWN_IDS = ["gate","motorpark","minimart","cyber","lodges","market","buka","club"];
+var TOWN_PLACES = [
+  { id:"gate", name:"Main Gate bus stop", box:[3,64,9,68], walk:true, door:[6,66.2], top:3, hours:[0,24], desc:"Where kekes, danfos and okadas drop students off. Okadas can't go past the gate." },
+  { id:"motorpark", name:"Motor Park", box:[-52,67,-8,89], walk:true, door:[-9,72], top:4, hours:[5,23], center:[-30,78], desc:"Danfos load here for town. Conductors shout destinations. You can also rent a car." },
+  { id:"minimart", name:"Mini Mart", box:[8,66.5,18,73.5], door:[6.4,70], top:5, hours:[7,22], desc:"Snacks, drinks, toiletries and recharge cards." },
+  { id:"cyber", name:"Cyber Café and Printing", box:[8,75.5,18,82.5], door:[6.4,79], top:5, hours:[8,21], desc:"Printers, photocopiers and the fastest WiFi in town." },
+  { id:"lodges", name:"Student Lodges", box:[-34,100,-8,112], door:[-21,113.8], top:9, hours:[0,24], center:[-21,117], desc:"Off-campus lodges: face-me-I-face-you rooms and self-contains." },
+  { id:"market", name:"Town Market", box:[6,100,34,134], walk:true, door:[5.6,117], top:4, hours:[7,19], center:[20,117], desc:"Provisions, clothes, phone accessories and everything in between. Haggle well." },
+  { id:"buka", name:"Mama Nkechi's Buka", box:[-56,104,-45,114], door:[-44.2,109], top:5, hours:[7,22], desc:"Eba, egusi, pounded yam and the best suya at night." },
+  { id:"club", name:"Club Vibes", box:[45,108,57,128], door:[43.8,118], top:8, hours:[21,26], desc:"The biggest nightclub near campus. Gate fee required." }
+];
+TOWN_PLACES.forEach(function(p){ PLACES.push(p); PLACE[p.id]=p; if (!p.walk) OBST.push(p.box); });
+OBST.push([-34,122,-8,134],[42,74,48,80],[-32,70.5,-28,73.5],[-60,62.7,-4.2,63.3],[4.2,62.7,60,63.3]);
+var TOWN_NAMES = { unilag:"Akoka", ui:"Agbowo", uniben:"Ekosodin" };
+function townName(){ return TOWN_NAMES[S.uni] || (UNI_BY[S.uni] ? UNI_BY[S.uni].city : "Town"); }
+function applyTown(){ PLACE.motorpark.name=townName()+" Motor Park"; PLACE.market.name=townName()+" Market"; }
+
+function vbox(g,ox,oz,yaw,lx,ly,lz,w,h,d,col){ var c=Math.cos(yaw), s=Math.sin(yaw); g.box(ox+lx*c+lz*s, ly, oz-lx*s+lz*c, w,h,d,col,yaw); }
+function danfoGeo(g,ox,oz,yaw){
+  var Y=hexc("#F2B705"), K=hexc("#151515"), W=hexc("#2E3B4A",0.5), L=hexc("#FFF3C4",1);
+  vbox(g,ox,oz,yaw,0,1.35,0,2.3,2.0,5.6,Y);
+  vbox(g,ox,oz,yaw,0,1.0,0,2.34,0.16,5.64,K); vbox(g,ox,oz,yaw,0,1.55,0,2.34,0.1,5.64,K);
+  vbox(g,ox,oz,yaw,0,1.95,-0.2,2.36,0.6,4.6,W); vbox(g,ox,oz,yaw,0,1.85,2.81,2.0,0.7,0.04,W);
+  vbox(g,ox,oz,yaw,0,2.45,-0.3,1.9,0.12,4.2,K);
+  [[-1,-1.8],[1,-1.8],[-1,1.9],[1,1.9]].forEach(function(p){ vbox(g,ox,oz,yaw,p[0],0.4,p[1],0.3,0.8,0.8,K); });
+  vbox(g,ox,oz,yaw,-0.75,0.95,2.82,0.35,0.2,0.04,L); vbox(g,ox,oz,yaw,0.75,0.95,2.82,0.35,0.2,0.04,L);
+}
+function buildDanfo(){ var g=new GB(); danfoGeo(g,0,0,0); return GLX.mesh(g.a); }
+function buildOkada(){
+  var g=new GB(), K=hexc("#151515"), R=hexc("#C0392B"), S2=hexc("#3A5A9A"), SK=hexc("#6E4529");
+  g.box(0,0.38,0.75,0.12,0.7,0.7,K); g.box(0,0.38,-0.75,0.12,0.7,0.7,K);
+  g.box(0,0.8,0,0.32,0.35,1.4,R); g.box(0,1.05,-0.25,0.36,0.14,0.8,K); g.box(0,1.15,0.65,0.8,0.06,0.06,K);
+  g.box(0,1.45,-0.2,0.5,0.6,0.3,S2); g.box(0,1.95,-0.18,0.3,0.32,0.3,SK); g.box(0,2.12,-0.2,0.32,0.08,0.32,K);
+  g.box(-0.18,0.95,0,0.14,0.5,0.14,hexc("#1F2A44")); g.box(0.18,0.95,0,0.14,0.5,0.14,hexc("#1F2A44"));
+  return GLX.mesh(g.a);
+}
+function buildCar(){
+  var g=new GB(), B=[1,1,1,0], K=hexc("#151515"), W=hexc("#26303C",0.4), L=hexc("#FFF6D0",1);
+  g.box(0,0.62,0,1.9,0.66,4.2,B); g.box(0,1.18,-0.25,1.7,0.55,2.2,B);
+  g.box(0,1.2,0.88,1.6,0.46,0.06,W); g.box(0,1.2,-1.36,1.6,0.44,0.06,W); g.box(0.86,1.2,-0.25,0.04,0.42,1.9,W); g.box(-0.86,1.2,-0.25,0.04,0.42,1.9,W);
+  [[-0.88,-1.35],[0.88,-1.35],[-0.88,1.35],[0.88,1.35]].forEach(function(p){ g.box(p[0],0.34,p[1],0.28,0.68,0.68,K); });
+  g.box(-0.6,0.7,2.11,0.35,0.15,0.04,L); g.box(0.6,0.7,2.11,0.35,0.15,0.04,L);
+  return GLX.mesh(g.a);
+}
+
+function buildTown(g){
+  var C=hexc, DK=C("#2B2B30"), ZINC=C("#8E9499"), WIN=C("#8FA9C4",1);
+  g.rect(-60,63.3,60,152,0.006,C("#9CB063"));
+  var seed=5; function rnd(){ seed=(seed*16807)%2147483647; return seed/2147483647; }
+  for (var i=0;i<16;i++){ var x=-55+rnd()*110, z=66+rnd()*80, w=4+rnd()*8; g.rect(x,z,x+w,z+w*0.7,0.008,C("#B98A5A")); }
+  g.blk(-60,0,107,0.6,1.6,90,C("#D9CDB5")); g.blk(60,0,107,0.6,1.6,90,C("#D9CDB5")); g.blk(0,0,152,120,1.6,0.6,C("#D9CDB5"));
+  /* gate bus stop */
+  [[3.6,64.6],[8.4,64.6],[3.6,67.4],[8.4,67.4]].forEach(function(p){ g.cyl(p[0],0,p[1],0.07,0.07,2.6,5,DK); });
+  g.box(6,2.7,66,5.6,0.16,3.6,C("#1E9E5A")); g.blk(6,0,67,4,0.45,0.6,C("#8A5A35"));
+  /* motor park */
+  g.rect(-52,67,-8,89,0.02,C("#8C8B84"));
+  g.blk(-30,0,72,4,2.6,3,C("#F2C230")); g.box(-30,2.75,72,4.8,0.25,3.8,C("#1E5AA8"));
+  [[-46,80,0],[-41,80,0],[-36,80,0],[-31,80,0],[-20,84,Math.PI/2],[-20,77.5,Math.PI/2]].forEach(function(p){ danfoGeo(g,p[0],p[1],p[2]); });
+  for (var k=0;k<4;k++){ var kx=-48+k*3.2; vbox(g,kx,70.5,0,0,0.85,0.1,1.25,0.9,2.0,C("#F2C230")); vbox(g,kx,70.5,0,0,2.0,0.1,1.35,0.1,2.3,C("#1E9E5A")); }
+  /* shops */
+  function shop(z,body,sign){
+    g.blk(13,0,z,10,4.2,7,C(body)); g.box(13,4.3,z,10.6,0.25,7.6,C("#7A7A80"));
+    g.box(7.95,3.5,z,0.08,0.9,6.2,C(sign,0.45)); g.box(7.6,2.6,z,0.9,0.08,6.6,C("#E5484D"),0,0.25);
+    g.box(7.97,1.3,z-1.5,0.06,2.4,1.6,C("#3D2A1E")); g.box(7.97,1.6,z+1.4,0.06,1.4,2.4,WIN);
+    g.blk(9.5,0,z+3.9,1.2,0.9,0.9,DK);
+  }
+  shop(70,"#F4F4F4","#C0392B"); shop(79,"#CFE6FF","#2B4CC0");
+  /* filling station */
+  [[29,74],[43,74],[29,84],[43,84]].forEach(function(p){ g.cyl(p[0],0,p[1],0.18,0.18,4.4,6,C("#F4F4F4")); });
+  g.box(36,4.6,79,15,0.5,11,C("#1E9E5A")); g.box(36,4.15,79,15.2,0.3,11.2,C("#F2C230",0.4));
+  g.blk(33,0,79,0.8,1.6,0.6,C("#E5484D")); g.blk(38,0,79,0.8,1.6,0.6,C("#E5484D")); g.blk(45,0,77,6,3,6,C("#F4F4F4"));
+  /* lodges */
+  function lodge(z,body){
+    g.blk(-21,0,z,26,6.4,12,C(body));
+    g.gable(-21,6.4,z,26.8,2.4,12.8,ZINC);
+    g.box(-21,3.2,z+6.6,25,0.25,1.4,C("#CFC6B4")); g.box(-21,3.85,z+7.25,25,0.9,0.08,DK);
+    for (var w=0;w<6;w++){ var wx=-31+w*4.2; g.box(wx,1.7,z+6.03,1.4,1.3,0.06,WIN); g.box(wx,4.9,z+6.03,1.4,1.3,0.06,WIN); g.box(wx,1.7,z+6.07,1.4,0.06,0.04,DK); g.box(wx,4.9,z+6.07,1.4,0.06,0.04,DK); }
+    g.box(-21,1.3,z+6.04,1.6,2.6,0.08,C("#3D2A1E"));
+    g.cyl(-6.5,0,z,0.9,0.9,0.3,10,DK); g.cyl(-6.5,2.6,z,1.0,1.0,1.8,10,C("#1A1A1A")); [-0.6,0.6].forEach(function(o){ g.cyl(-6.5+o,0,z+o,0.06,0.06,2.6,4,DK); });
+    g.blk(-35.5,0,z+3,1.4,1,0.9,C("#C0392B"));
+    for (var cl=0;cl<6;cl++) g.box(-30+cl*3.8,3.4,z+7.3,0.5,0.6,0.04,C(TOPS[cl%TOPS.length]));
+  }
+  lodge(106,"#E8C547"); lodge(128,"#9FC5E8");
+  /* market stalls */
+  var UMB=["#E5484D","#2B4CC0","#1E9E5A","#F2C230","#8E44AD"];
+  for (var r=0;r<4;r++) for (var c=0;c<5;c++){
+    var sx=9+c*5.6, sz=103+r*8.4;
+    g.blk(sx,0,sz,2.2,0.8,1.3,C("#B88A5A"));
+    g.cyl(sx,0,sz,0.05,0.05,2.4,4,DK); g.cyl(sx,2.2,sz,1.6,0.05,0.6,8,C(UMB[(r+c)%5]));
+    g.blk(sx-0.5,0.8,sz,0.4,0.3,0.4,C(UMB[(r+c+2)%5])); g.blk(sx+0.4,0.8,sz,0.5,0.22,0.5,C("#F4F4F4"));
+    OBST.push([sx-1.1,sz-0.65,sx+1.1,sz+0.65]);
+  }
+  /* buka */
+  g.blk(-50.5,0,109,10,3.4,8,C("#F6E7C8")); g.gable(-50.5,3.4,109,10.6,1.6,8.6,ZINC,Math.PI/2);
+  g.box(-45.3,2.6,109,0.9,0.08,7,C("#1E9E5A"),0,0); g.box(-45.45,3.0,109,0.06,0.6,4,C("#E5484D",0.5));
+  g.cyl(-44,0,106,0.4,0.36,0.8,8,DK); g.blk(-44.5,0,111.5,0.6,0.45,2.4,C("#8A5A35"));
+  /* club */
+  g.blk(51,0,118,12,6,20,C("#1C1530")); g.blk(51,6,118,12.4,0.4,20.4,C("#120C22"));
+  g.box(44.95,5,118,0.08,0.25,19,C("#FF4FD8",1)); g.box(44.95,0.5,118,0.08,0.15,19,C("#3DF2FF",1));
+  g.box(44.95,2,118,0.08,3,2.4,C("#120C22")); g.box(44.3,3.4,118,1.4,0.15,4,C("#F2C230",0.6));
+  g.box(51,8.6,118,0.3,4,0.3,DK); g.box(51,10.2,118,0.2,2.6,6,C("#FF4FD8",0.8));
+  /* billboards */
+  [[-12,64.8,"#2B4CC0"],[34,92,"#E5484D"],[-50,137,"#1E9E5A"]].forEach(function(b){ g.cyl(b[0],0,b[1],0.15,0.15,6,6,DK); g.box(b[0],7,b[1],6,3,0.2,C(b[2],0.5)); g.box(b[0],7,b[1]+0.12,5,0.5,0.05,C("#FFFFFF",0.6)); });
+  /* power poles and wires along the main road */
+  var prev=null;
+  for (var pz=67; pz<=138; pz+=13){
+    if (Math.abs(pz-95)<5){ prev=null; continue; }
+    g.cyl(-5.4,0,pz,0.12,0.1,7.2,5,C("#6B4F2A")); g.box(-5.4,6.8,pz,1.6,0.1,0.1,C("#6B4F2A"));
+    if (prev!==null){ var mid=(pz+prev)/2, len=pz-prev; [-6.1,-4.7].forEach(function(wx){ g.box(wx,6.6,mid,0.03,0.03,len,DK); }); }
+    prev=pz;
+  }
+  /* kiosks and trees */
+  [[6,92],[-6,99],[6,131],[-6,124]].forEach(function(p,i){ g.blk(p[0],0,p[1],1.4,1,1,C("#C9A27E")); g.cyl(p[0],0,p[1],0.04,0.04,2.4,4,DK); g.cyl(p[0],2.2,p[1],1.3,0.05,0.5,8,C(UMB[i%5])); });
+  for (var t=0;t<40;t++){
+    var tx=-57+rnd()*114, tz=66+rnd()*84;
+    if (onRoad(tx,tz,2.4) || inObst(tx,tz,2.5)) continue;
+    if (tx>-53&&tx<-7&&tz>66&&tz<90) continue; if (tx>5&&tx<35&&tz>99&&tz<135) continue; if (tx>27&&tx<49&&tz>72&&tz<86) continue;
+    if (rnd()>0.6){ for (var s2=0;s2<5;s2++) g.cyl(tx,s2,tz,0.2,0.18,1,6,C("#8A6A44")); for (var f=0;f<7;f++){ var a=f/7*Math.PI*2; g.box(tx+Math.sin(a)*1.1,4.85,tz+Math.cos(a)*1.1,0.5,0.06,2.4,C(f%2?"#3E8E3E":"#4FA349"),a,0.45); } }
+    else { g.cyl(tx,0,tz,0.18,0.14,1.6,6,C("#7A5230")); g.ico(tx,2.5,tz,1.5,C("#3E8E3E"),0.85); }
+  }
+}
+var TOWN_NPCS=[["motorpark",-27,74.5,"m","Conductor"],["motorpark",-24,80,"m","Danfo driver"],["market",11.5,103,"f","Mama Chika"],["market",17,111.4,"f","Iya Basira"],["market",23,119.8,"m","Phone seller"],["buka",-44.5,107,"f","Mama Nkechi"],["club",43.6,115.5,"m","Bouncer"],["minimart",7.2,72.6,"m","Shop owner"],["cyber",7.2,81.4,"f","Cyber attendant"],["gate",4.5,67.6,"m"]];
+function makeTownNpcs(){
+  TOWN_NPCS.forEach(function(n,i){ var g=n[3], lk=rlook(g); npcs.push({ id:"t"+i, name:n[4]||(g==="f"?NPC_F:NPC_M)[(i+3)%9], g:g, look:lk, cols:lookColors(lk), phase:0, amp:0, mode:"idle", x:n[1], z:n[2], yaw:Math.PI/2*(i%4), say:null, sayT:0, mate:false }); });
 }
 
 /* ===== Campus NG v2: content, state, time, phone chats ===== */
@@ -1329,7 +1463,8 @@ function isOpen(p){ var h=hourNow(); return h>=p.hours[0] && h<p.hours[1]; }
 function A(o){ return o; }
 function placeActions(id){
   var P=PLACE[id], acts=[], h=hourNow();
-  if (id==="library") acts=[
+  if (TOWN_IDS.indexOf(id)>=0) acts=townActions(id);
+  else if (id==="library") acts=[
     A({k:"read", label:"Read alone", mins:120, fx:{prep:8,energy:-12,vibes:-8}, study:1, text:function(){ return pick(["Two hours of silence, one chapter done.","You read until the attendant started switching off lights.","You found a quiet corner and got through your notes."]); }}),
     A({k:"group", label:"Group study with coursemates", mins:60, daily:1, fx:{prep:5,vibes:6,pop:1}, study:1, text:"Your group explained the hard topic in ten minutes, then gisted for an hour."}),
     A({k:"rest", label:"Rest under the AC", mins:30, fx:{energy:5,vibes:3}, text:"The AC is working today. A rare blessing."}) ];
@@ -1441,7 +1576,7 @@ function doPlaceAction(i){
 function renderPlace(){
   var P=PLACE[curPlace], open=isOpen(P);
   var k = P.hours[0]===0 && P.hours[1]===24 ? "Open all day" : (open ? "Open till "+hr(Math.min(P.hours[1],24)*60) : "Closed. Opens at "+hr(P.hours[0]*60));
-  var h='<p class="sh-k">'+esc(k)+'</p><h2 class="sh-t" id="sh-t" tabindex="-1">'+esc(P.name)+'</h2><p class="sh-b">'+esc(PLACE_DESC[P.id]||"")+"</p>";
+  var h='<p class="sh-k">'+esc(k)+'</p><h2 class="sh-t" id="sh-t" tabindex="-1">'+esc(P.name)+'</h2><p class="sh-b">'+esc(PLACE_DESC[P.id]||P.desc||"")+"</p>";
   h+='<div class="statline"><span>⚡ '+Math.round(S.energy)+'</span><span>🍛 '+Math.round(S.food)+'</span><span>📚 Readiness '+Math.round(S.prep)+'%</span><span>'+fmt(S.cash)+'</span><span>'+t12(S.min)+'</span></div>';
   if (placeNote) h+='<p class="note">'+esc(placeNote.text)+"</p>"+pillsHTML(placeNote.d);
   if (!open){ h+='<p class="note">The doors are locked. Come back at '+hr(P.hours[0]*60)+".</p>"; }
@@ -1468,7 +1603,7 @@ var npcs=[];
 function rlook(g){ return { g:g, style: g==="f" ? pick([0,1,3,3]) : pick([0,0,1,2]), skin:Math.floor(Math.random()*SKINS.length), top:Math.floor(Math.random()*TOPS.length), bot:Math.floor(Math.random()*BOTS.length), hair: g==="f" ? pick([1,2,3,5,2,3]) : pick([0,0,1,4,0]) }; }
 function makeNpcs(){
   var keys=Object.keys(NODES), seed=0;
-  for (var i=0;i<18;i++){
+  for (var i=0;i<26;i++){
     var g=i%2?"f":"m", nm=(g==="f"?NPC_F:NPC_M)[(i>>1)%9], lk=rlook(g);
     var from=keys[(i*7)%keys.length], to=pick(NBR[from]);
     var n={ id:"n"+i, name:nm, g:g, look:lk, cols:lookColors(lk), phase:Math.random()*6, amp:0, mode:"walk", from:from, to:to, side:Math.random()<0.5?-1:1, speed:2.1+Math.random()*0.8, wait:0, say:null, sayT:0, mate:Math.random()<0.5, x:NODES[from][0], z:NODES[from][1], yaw:0 };
@@ -1513,8 +1648,8 @@ function updateNpcs(dt){
 var keys={}, joy={ on:false, x:0, y:0, id:null }, camYaw=Math.PI, camDist=15, autoPath=null, moving=false, pPhase=0, pAmp=0;
 var mySay=null, mySayT=0;
 function teleport(id){ var P=PLACE[id]; if (!P) return; S.inside=null; S.x=P.door[0]; S.z=P.door[1]; autoPath=null; autoEnter=null; }
-function collide(){
-  var r=0.42;
+function collide(rad){
+  var r=rad||0.42;
   for (var i=0;i<OBST.length;i++){
     var b=OBST[i];
     if (S.x>b[0]-r && S.x<b[2]+r && S.z>b[1]-r && S.z<b[3]+r){
@@ -1525,7 +1660,7 @@ function collide(){
   if (S.inside){ insideBounds(); return; }
   var Lk=PLACE.lake.circle, dx=S.x-Lk[0], dz=S.z-Lk[1], d=Math.hypot(dx,dz);
   if (d<Lk[2]+r){ S.x=Lk[0]+dx/(d||1)*(Lk[2]+r); S.z=Lk[1]+dz/(d||1)*(Lk[2]+r); }
-  S.x=clamp(S.x,-58.8,58.8); S.z=clamp(S.z,-61.8,61.8);
+  S.x=clamp(S.x,-58.8,58.8); S.z=clamp(S.z,-61.8,150.5);
 }
 function segClear(x0,z0,x1,z1){ var l=Math.hypot(x1-x0,z1-z0), n=Math.ceil(l/0.8); for (var i=1;i<n;i++){ var t=i/n; if (inObst(x0+(x1-x0)*t,z0+(z1-z0)*t,0.3)) return false; } return true; }
 function nearestNode(x,z){
@@ -1619,7 +1754,7 @@ function setCamera(t){
     ex=tx-Math.sin(camYaw)*di*Math.cos(pi); ey=ty+di*Math.sin(pi); ez=tz-Math.cos(camYaw)*di*Math.cos(pi);
   } else {
     var p=0.44; tx=S.x; ty=1.9; tz=S.z;
-    var dist=camClip(tx,ty,tz,camDist,p);
+    var dist=camClip(tx,ty,tz,camDist+((driving||ride)?4:0),p);
     ex=tx-Math.sin(camYaw)*dist*Math.cos(p); ey=ty+dist*Math.sin(p); ez=tz-Math.cos(camYaw)*dist*Math.cos(p);
   }
   EYE=[ex,ey,ez];
@@ -1629,7 +1764,8 @@ function setCamera(t){
   camU=[camR[1]*camF[2]-camR[2]*camF[1], camR[2]*camF[0]-camR[0]*camF[2], camR[0]*camF[1]-camR[1]*camF[0]];
 }
 var CAMBOX=[];
-PLACES.forEach(function(P){ if (P.box) CAMBOX.push([P.box[0],P.box[1],P.box[2],P.box[3],P.top]); });
+PLACES.forEach(function(P){ if (P.box && !P.walk) CAMBOX.push([P.box[0],P.box[1],P.box[2],P.box[3],P.top]); });
+CAMBOX.push([-34,122,-8,134,9]);
 CAMBOX.push([-6.6,56.6,6.6,59.4,8.2],[-6,56.8,-4,59.2,7],[4,56.8,6,59.2,7]);
 function camClip(tx,ty,tz,dist,p){
   var dx=-Math.sin(camYaw)*Math.cos(p), dy=Math.sin(p), dz=-Math.cos(camYaw)*Math.cos(p);
@@ -1644,7 +1780,7 @@ function proj(x,y,z){
   if (cw<=0.2) return null; return [(cx/cw+1)/2*cssW, (1-cy/cw)/2*cssH, cw];
 }
 function tapWorld(sx,sy){
-  if (uiBusy()) return;
+  if (uiBusy() || ride || driving) return;
   var best=null, bd=40;
   npcs.forEach(function(n){ var p=proj(n.x,1.3,n.z); if (p){ var d=Math.hypot(p[0]-sx,p[1]-sy); if (d<bd && Math.hypot(n.x-S.x,n.z-S.z)<30){ bd=d; best={ npc:n }; } } });
   for (var id in remotes){ var r=remotes[id], p=proj(r.x,1.3,r.z); if (p){ var d=Math.hypot(p[0]-sx,p[1]-sy); if (d<bd){ bd=d; best={ rem:r }; } } }
@@ -1676,18 +1812,20 @@ function drawScene(t){
   GLX.frame($("#gl").width, $("#gl").height, VP, EYE, env);
   GLX.draw(worldMesh);
   var m=M4.ident();
-  [[kekeMesh,0,0],[kekeMesh,2,70],[busMesh,1,30],[kekeMesh,1,120]].forEach(function(v,i){
-    var P=pathAt(VEH_PATHS[v[1]], vehT*(v[0]===busMesh?7:9)+v[2]);
+  [[kekeMesh,0,0,9],[kekeMesh,2,70,9],[busMesh,1,30,7],[kekeMesh,1,120,9],[danfoMesh,3,0,8],[danfoMesh,3,140,8],[okadaMesh,4,20,12],[okadaMesh,4,110,12],[kekeMesh,4,60,9]].forEach(function(v,i){
+    var P=pathAt(VEH_PATHS[v[1]], vehT*v[3]+v[2]);
     M4.set(m); M4.tr(m,P.x,0,P.z); M4.ry(m,P.yaw); GLX.draw(v[0],m);
   });
   var shadows=[];
   if (S.phase==="play" || S.phase==="create"){
     playerCols=lookColors(Object.assign({ g:S.gender }, S.look));
     var py=S.phase==="create" ? Math.sin(t*0.0007)*0.7 : S.yaw, px=S.phase==="create"?0:S.x, pz=S.phase==="create"?47:S.z;
-    drawAvatar({ x:px, z:pz, yaw:py, phase:pPhase, amp:pAmp, cols:playerCols }); shadows.push([px,pz]);
+    if (S.phase==="play" && (ride||driving)) drawMyVehicle();
+    else { drawAvatar({ x:px, z:pz, yaw:py, phase:pPhase, amp:pAmp, cols:playerCols }); shadows.push([px,pz]); }
   }
   npcs.forEach(function(n){ if (Math.hypot(n.x-EYE[0],n.z-EYE[2])<150){ drawAvatar(n); shadows.push([n.x,n.z]); } });
-  for (var id in remotes){ var r=remotes[id]; if (visibleRemote(r)){ drawAvatar(r); shadows.push([r.x,r.z]); } }
+  drawParkedCar();
+  for (var id in remotes){ var r=remotes[id]; if (visibleRemote(r)){ if (r.v && VMESH(r.v)) drawVehicle(r.v,r.x,r.z,r.yaw,r.v==="car"?[0.7,0.72,0.76]:null); else { drawAvatar(r); shadows.push([r.x,r.z]); } } }
   GLX.blend(true); shadows.forEach(function(s){ drawShadow(s[0],s[1],0.5); }); GLX.blend(false);
 }
 
@@ -1732,7 +1870,11 @@ function updateActs(){
   var box=$("#acts"), items=[];
   if (S.phase==="play" && !uiBusy()){
     var bestP=null, bd=3.4;
-    if (S.inside){ items.push({ k:"i:"+S.inside, t:"📋 Things to do in "+PLACE[S.inside].name }); items.push({ k:"x:", t:"🚪 Go outside", alt:true }); }
+    if (ride){ items.push({ k:"s:", t:"🛑 Get down here", alt:true }); }
+    else if (driving){ items.push({ k:"q:", t:"🅿️ Park and get out" }); }
+    else if (S.car && !S.inside && S.car.day===S.day && Math.hypot(S.car.x-S.x,S.car.z-S.z)<3.6){ items.push({ k:"c:", t:"🚗 Drive your car" }); }
+    if (ride || driving) {}
+    else if (S.inside){ items.push({ k:"i:"+S.inside, t:"📋 Things to do in "+PLACE[S.inside].name }); items.push({ k:"x:", t:"🚪 Go outside", alt:true }); }
     else PLACES.forEach(function(P){ var d=Math.hypot(P.door[0]-S.x,P.door[1]-S.z); if (d<bd){ bd=d; bestP=P; } });
     if (bestP) items.push({ k:"p:"+bestP.id, t:(IN[bestP.id] ? "Enter " : "Go to ")+bestP.name });
     var bn=null, nd=2.8;
@@ -1750,6 +1892,9 @@ $("#acts").addEventListener("click", function(e){
   if (k[0]==="p") enterPlace(id);
   else if (k[0]==="i") openPlace(id);
   else if (k[0]==="x") exitPlace();
+  else if (k[0]==="s") stopRide();
+  else if (k[0]==="c"){ driving=true; carV=0; actsKey=""; sendPresence(true); }
+  else if (k[0]==="q"){ driving=false; carV=0; var c=S.car; S.x=c.x+Math.cos(c.yaw)*1.8; S.z=c.z-Math.sin(c.yaw)*1.8; collide(); actsKey=""; save(); sendPresence(true); }
   else if (k[0]==="n"){ var n=npcs.filter(function(x){ return x.id===id; })[0]; if (n) openNpc(n); }
   else if (k[0]==="r" && remotes[id]) openRemote(remotes[id]);
 });
@@ -1821,7 +1966,8 @@ function endOfDay(kind){
   S.food=clamp(S.food-15,0,100); S.fresh=clamp(S.fresh-(kind==="passout"?25:10),0,100); S.vibes=clamp(S.vibes-5,0,100);
   if (kind==="passout"){ notes.push("You slept off outside. The mosquitoes had a party."); S.rep=clamp(S.rep-1,-50,50); }
   if (kind==="party") notes.push("You got back from The Joint at 1AM and woke up late.");
-  S.inside=null;
+  S.inside=null; ride=null; driving=false; carV=0;
+  if (S.car){ S.car=null; notes.push("The rental car went back to the motor park."); }
   if (kind!=="passout") teleport(hallId());
   S.day++; S.min = kind==="party" ? 8*60+40 : 7*60; S.today={};
   notes.push("You woke up with "+Math.round(S.energy)+" energy.");
@@ -1909,7 +2055,7 @@ function applyPeer(id, pr){
   var nin=typeof pr.i==="string" ? pr.i.slice(0,12) : "";
   if (nin!==r.inside){ r.x=num(pr.x,-80,700,r.x); r.z=num(pr.z,-80,700,r.z); }
   r.name=cleanName(pr.n); r.tx=num(pr.x,-80,700,r.x); r.tz=num(pr.z,-80,700,r.z); r.tyaw=num(pr.r,-20,20,0); r.moving=!!pr.m; r.inGame=pr.p==="play";
-  r.uni=typeof pr.u==="string" ? pr.u.slice(0,12) : ""; r.inside=nin;
+  r.uni=typeof pr.u==="string" ? pr.u.slice(0,12) : ""; r.inside=nin; r.v=typeof pr.v==="string" ? pr.v.slice(0,6) : "";
   var k=Array.isArray(pr.k)?pr.k:[];
   r.look={ skin:num(k[0],0,SKINS.length-1,2)|0, top:num(k[1],0,TOPS.length-1,0)|0, bot:num(k[2],0,BOTS.length-1,0)|0, hair:num(k[3],0,HAIRS.length-1,0)|0, style:num(k[4],0,3,0)|0, g:k[5]===1?"f":"m" };
   r.cols=lookColors(r.look);
@@ -1931,7 +2077,7 @@ function sendPresence(force, extra){
   var viaRoom=room&&roomOk, viaWs=ws&&wsOk&&ws.readyState===1;
   if (!viaRoom && !viaWs) return;
   var pr={ n:cleanName(S.name||"Student"), x:Math.round(S.x*100)/100, z:Math.round(S.z*100)/100, r:Math.round(S.yaw*100)/100, m:moving?1:0,
-    k:[S.look.skin|0,S.look.top|0,S.look.bot|0,S.look.hair|0,S.look.style|0,S.gender==="f"?1:0], p:S.phase==="play"?"play":"menu", u:S.uni, i:S.inside||"" };
+    v:driving?"car":(ride?ride.type:""), k:[S.look.skin|0,S.look.top|0,S.look.bot|0,S.look.hair|0,S.look.style|0,S.gender==="f"?1:0], p:S.phase==="play"?"play":"menu", u:S.uni, i:S.inside||"" };
   if (extra) for (var k in extra) pr[k]=extra[k];
   var js=JSON.stringify(pr);
   if (!force && js===presLast) return;
@@ -1983,7 +2129,7 @@ var UNIS = [
 var UNI_BY = {}; UNIS.forEach(function(u){ UNI_BY[u[0]] = { id:u[0], name:u[1], short:u[2], city:u[3], type:u[4], diff:u[5], halls:u[6]||["Independence Hall","Queen Amina Hall"] }; });
 function UNI(){ return UNI_BY[S.uni] || UNI_BY.unilag; }
 function startCash(){ var t=UNI().type; return t==="P" ? 60000 : (t==="S" ? 22000 : 25000); }
-function applyUni(){ var u=UNI(); PLACE.jaja.name=u.halls[0]; PLACE.moremi.name=u.halls[1]; }
+function applyUni(){ var u=UNI(); PLACE.jaja.name=u.halls[0]; PLACE.moremi.name=u.halls[1]; applyTown(); }
 
 /* ---------- Jobs ---------- */
 var JOBS = [
@@ -2255,6 +2401,130 @@ function connectWs(){
 }
 function netOnline(){ return (room && roomOk) || wsOk; }
 
+/* ===== Rides, driving and town activities ===== */
+var danfoMesh=null, okadaMesh=null, carMesh=null, ride=null, driving=false, carV=0, rideDest=null;
+var RIDE_T = { keke:{ n:"Keke", e:"🛺", sp:9 }, okada:{ n:"Okada", e:"🏍️", sp:13 }, danfo:{ n:"Danfo", e:"🚐", sp:8 } };
+function VMESH(t){ return t==="keke"?kekeMesh:t==="okada"?okadaMesh:t==="danfo"?danfoMesh:t==="car"?carMesh:null; }
+function angD(a,b){ return ((a-b+Math.PI*3)%(Math.PI*2))-Math.PI; }
+function onCampus(z){ return z<62.5; }
+function roadPoints(x0,z0,tx,tz){
+  var a=nearestNode(x0,z0), b=nearestNode(tx,tz); if (!a || !b) return [[tx,tz]];
+  var prev={}, q=[a]; prev[a]=a;
+  while (q.length){ var u=q.shift(); if (u===b) break; (NBR[u]||[]).forEach(function(v){ if (!(v in prev)){ prev[v]=u; q.push(v); } }); }
+  var path=[], cur=b; while (cur && cur!==a){ path.unshift(NODES[cur].slice()); cur=prev[cur]; } path.unshift(NODES[a].slice());
+  path.push([tx,tz]); return path;
+}
+function pathDist(pts,x,z){ var d=0, px=x, pz=z; pts.forEach(function(p){ d+=Math.hypot(p[0]-px,p[1]-pz); px=p[0]; pz=p[1]; }); return d; }
+function rideInfo(type, id){
+  var P=PLACE[id], pts=roadPoints(S.x,S.z,P.door[0],P.door[1]), dist=pathDist(pts,S.x,S.z), why="";
+  var fare = type==="danfo" ? 150 : type==="okada" ? 200+50*Math.floor(dist/20) : 150+50*Math.floor(dist/25);
+  if (type==="okada" && (onCampus(S.z) || onCampus(P.door[1]))) why="Okadas aren't allowed on campus.";
+  if (type==="danfo"){ var nearPark=Math.hypot(S.x+30,S.z-78)<16 || Math.hypot(S.x-6,S.z-66)<10; if (!nearPark) why="Danfos load at the Motor Park or the gate bus stop."; else if (onCampus(P.door[1])) why="Danfos don't enter campus. Get down at the gate."; }
+  if (!why && S.cash<fare) why="Not enough cash.";
+  return { pts:pts, dist:dist, fare:fare, mins:Math.max(3,Math.round(dist/RIDE_T[type].sp*2)), why:why };
+}
+function startRide(type, id){
+  if (S.inside) exitPlace();
+  var info=rideInfo(type,id); if (info.why) return;
+  var d=apply({ cash:-info.fare }, RIDE_T[type].n+" ride");
+  ride={ type:type, dest:id, pts:info.pts, x:S.x, z:S.z, yaw:S.yaw };
+  driving=false; autoPath=null; autoEnter=null; actsKey="";
+  closeSheet(); closePhone(); save(); sendPresence(true);
+  toast(RIDE_T[type].e+" You hopped on a "+RIDE_T[type].n.toLowerCase()+" to "+esc(PLACE[id].name)+".", d);
+}
+function updateRide(dt){
+  var r=ride, sp=RIDE_T[r.type].sp, step=sp*dt;
+  while (step>0 && r.pts.length){
+    var t=r.pts[0], dx=t[0]-r.x, dz=t[1]-r.z, d=Math.hypot(dx,dz);
+    if (d<=step){ r.x=t[0]; r.z=t[1]; r.pts.shift(); step-=d; }
+    else { r.x+=dx/d*step; r.z+=dz/d*step; r.yaw+=angD(Math.atan2(dx,dz),r.yaw)*Math.min(1,dt*6); step=0; }
+  }
+  var nx=r.pts.length?r.pts[0]:null, ox=0, oz=0;
+  if (nx){ var ddx=nx[0]-r.x, ddz=nx[1]-r.z, l=Math.hypot(ddx,ddz)||1; ox=-ddz/l*1.6; oz=ddx/l*1.6; }
+  r.vx=r.x+ox; r.vz=r.z+oz;
+  S.x=r.vx; S.z=r.vz; S.yaw=r.yaw; moving=true;
+  camYaw+=angD(r.yaw,camYaw)*Math.min(1,dt*1.5);
+  if (!r.pts.length){ var P=PLACE[r.dest]; ride=null; S.x=P.door[0]; S.z=P.door[1]; moving=false; actsKey=""; save(); sendPresence(true); toast(RIDE_T[r.type].e+" Dropped at <b>"+esc(P.name)+"</b>."); }
+}
+function stopRide(){ if (!ride) return; S.x=ride.x; S.z=ride.z; ride=null; collide(); actsKey=""; save(); sendPresence(true); toast("You got down. The driver didn't refund you 😅"); }
+function updateDrive(dt){
+  var c=S.car; if (!c){ driving=false; return; }
+  var jy=joy.on?joy.y:0, jx=joy.on?joy.x:0;
+  if (keys.KeyW||keys.ArrowUp) jy-=1; if (keys.KeyS||keys.ArrowDown) jy+=1; if (keys.KeyA||keys.ArrowLeft) jx-=1; if (keys.KeyD||keys.ArrowRight) jx+=1;
+  var thr=clamp(-jy,-1,1);
+  carV+=thr*16*dt; carV*=1-Math.min(1,dt*(Math.abs(thr)<0.1?1.4:0.25)); carV=clamp(carV,-6,19);
+  c.yaw-=clamp(jx,-1,1)*dt*2.0*clamp(carV/7,-1,1);
+  var want=carV*dt; S.x=c.x+Math.sin(c.yaw)*want; S.z=c.z+Math.cos(c.yaw)*want; collide(1.2);
+  if (Math.abs(want)>0.01 && Math.hypot(S.x-c.x,S.z-c.z)<Math.abs(want)*0.5) carV*=0.3;
+  c.x=S.x; c.z=S.z; S.yaw=c.yaw; moving=Math.abs(carV)>0.5;
+  camYaw+=angD(c.yaw,camYaw)*Math.min(1,dt*2.2);
+}
+function drawVehicle(t,x,z,yaw,tint){ var m=VMESH(t); if (!m) return; M4.set(_Q); M4.tr(_Q,x,0,z); M4.ry(_Q,yaw); GLX.draw(m,_Q,tint||[1,1,1]); }
+function drawMyVehicle(){ if (ride) drawVehicle(ride.type, ride.vx||ride.x, ride.vz||ride.z, ride.yaw); else if (driving && S.car) drawVehicle("car", S.car.x, S.car.z, S.car.yaw, S.car.c); }
+function drawParkedCar(){ if (S.phase==="play" && S.car && !driving && !S.inside) drawVehicle("car", S.car.x, S.car.z, S.car.yaw, S.car.c); }
+
+/* ride picker */
+function openRides(id){ if (S.phase!=="play" || dayEnding || ride) return; closePhone(); rideDest=id||null; sheetMode="rides"; renderRides(); openSheet(); }
+function renderRides(){
+  var h;
+  if (!rideDest){
+    var list=PLACES.filter(function(P){ return Math.hypot(P.door[0]-S.x,P.door[1]-S.z)>6; }).sort(function(a,b){ return (onCampus(a.door[1])-onCampus(b.door[1])) || Math.hypot(a.door[0]-S.x,a.door[1]-S.z)-Math.hypot(b.door[0]-S.x,b.door[1]-S.z); });
+    h='<p class="sh-k">'+(onCampus(S.z)?"On campus":"In "+esc(townName()))+'</p><h2 class="sh-t" id="sh-t" tabindex="-1">Where to?</h2><div class="choices">'+list.map(function(P){
+      return '<button type="button" class="choice" data-rdest="'+P.id+'"><span>'+esc(P.name)+'<span class="why">'+(onCampus(P.door[1])?"Campus":esc(townName()))+'</span></span><span class="cost">'+Math.round(Math.hypot(P.door[0]-S.x,P.door[1]-S.z))+" m away</span></button>";
+    }).join("")+'</div><button type="button" class="btn ghost" data-close="1">Close</button>';
+  } else {
+    var P=PLACE[rideDest];
+    h='<p class="sh-k">Getting there</p><h2 class="sh-t" id="sh-t" tabindex="-1">'+esc(P.name)+'</h2><div class="choices">'+["keke","okada","danfo"].map(function(t){
+      var I=rideInfo(t,rideDest);
+      return '<button type="button" class="choice'+(I.why?"":" hot")+'" data-rtype="'+t+'"'+(I.why?" disabled":"")+'><span>'+RIDE_T[t].e+" "+RIDE_T[t].n+(I.why?'<span class="why">'+esc(I.why)+"</span>":'<span class="why">About '+I.mins+" minutes</span>")+'</span><span class="cost">'+fmt(I.fare)+"</span></button>";
+    }).join("")+'<button type="button" class="choice" data-rwalk="1"><span>🚶 Walk<span class="why">Free</span></span></button></div><button type="button" class="btn ghost" data-rback="1">Pick another place</button>';
+  }
+  $("#sheet").innerHTML=h;
+}
+$("#sheet").addEventListener("click", function(e){
+  var b=e.target.closest("button"); if (!b || b.disabled) return;
+  if (b.dataset.rdest){ rideDest=b.dataset.rdest; renderRides(); }
+  else if (b.dataset.rback){ rideDest=null; renderRides(); }
+  else if (b.dataset.rtype) startRide(b.dataset.rtype, rideDest);
+  else if (b.dataset.rwalk){ var P=PLACE[rideDest]; closeSheet(); if (S.inside) exitPlace(); routeTo(P.door[0],P.door[1]); autoEnter=P.id; toast("🚶 Walking to "+esc(P.name)+"."); }
+});
+
+/* town activities */
+function townActions(id){
+  var h=hourNow();
+  if (id==="gate") return [
+    A({k:"ride", label:"Get a ride", hot:1, go:function(){ closeSheet(); openRides(); return null; }}),
+    A({k:"wait", label:"Watch the gate traffic", mins:20, fx:{vibes:4}, text:"Kekes, danfos and a lecturer's old Peugeot. Campus life in one view."}) ];
+  if (id==="motorpark") return [
+    A({k:"danfo", label:"Take a danfo", hot:1, go:function(){ closeSheet(); openRides(); return null; }}),
+    A({k:"car", label:"Rent a car for today", cost:4000, req:function(){ return S.car ? "You already have a car today." : ""; }, go:function(s){ s.car={ day:s.day, x:-12, z:84, yaw:Math.PI/2, c:pick([[0.85,0.86,0.88],[0.75,0.12,0.12],[0.12,0.2,0.55],[0.15,0.15,0.16]]) }; return { text:"The owner handed you the keys. Your car is parked at the edge of the park. Walk to it and tap Drive.", log:"Rented a car and drove around "+townName()+"." }; }}),
+    A({k:"gala", label:"Gala and La Casera", cost:600, mins:10, fx:{food:12,vibes:3}, text:"The motor park breakfast of champions."}) ];
+  if (id==="minimart") return [
+    A({k:"snack", label:"Snacks and a cold drink", cost:800, mins:10, fx:{food:18,vibes:4}, text:"Plantain chips and a chilled malt. Peace."}),
+    A({k:"toil", label:"Toiletries (soap, sponge, deodorant)", cost:1500, mins:10, daily:1, fx:{fresh:25}, text:"You smell like a responsible adult now."}),
+    A({k:"card", label:"Recharge card", cost:500, mins:5, fx:{vibes:6}, text:"Airtime loaded. Time to call home."}) ];
+  if (id==="cyber") return [
+    A({k:"print", label:"Print your assignment", cost:300, mins:20, daily:1, fx:{rep:1,prep:2}, text:"The printer jammed twice, but it's done."}),
+    A({k:"pq", label:"Download and study past questions", cost:500, mins:60, fx:{prep:5}, study:1, text:"Past questions are the real syllabus."}),
+    A({k:"browse", label:"Browse and watch videos", cost:400, mins:60, fx:{vibes:15}, text:"Fast WiFi. You watched skits for an hour."}) ];
+  if (id==="lodges") return [
+    A({k:"visit", label:"Visit a coursemate's lodge", mins:60, daily:1, fx:{vibes:15,pop:2}, text:"Indomie, music and gist. Their landlord knocked twice."}),
+    A({k:"ask", label:"Ask the landlord about rooms", mins:20, go:function(){ return { text:"A face-me-I-face-you room is ₦60,000 a year. A self-contain is ₦150,000, paid upfront. 'Light and water dey,' he says." }; }}) ];
+  if (id==="market") return [
+    A({k:"prov", label:"Buy provisions (garri, sugar, Milo, noodles)", cost:3000, mins:40, fx:{food:30,vibes:3}, text:"Your locker is full. Your roommates have noticed."}),
+    A({k:"cloth", label:"Buy a new outfit", cost:4500, mins:45, go:function(s){ s.look.top=(s.look.top+1+Math.floor(Math.random()*(TOPS.length-1)))%TOPS.length; sendPresence(true); return { fx:{vibes:12,pop:2}, text:"New fit, new you. You're already wearing it." }; }}),
+    A({k:"haggle", label:"Haggle for fun", mins:30, fx:{vibes:6}, text:"You got ₦200 off a phone case. Victory."}) ];
+  if (id==="buka") return [
+    A({k:"eba", label:"Eba and egusi", cost:1800, mins:30, fx:{food:50,vibes:4}, text:"Mama Nkechi added an extra piece of meat. You greeted well."}),
+    A({k:"suya", label:"Suya", cost:1000, mins:15, req:function(){ return h<17 ? "The suya man comes out at 5 PM." : ""; }, fx:{food:20,vibes:8}, text:"Spicy, smoky, perfect."}) ];
+  if (id==="club") return [
+    A({k:"party", label:"Party all night", cost:5000, fx:{vibes:60,pop:12,energy:-30}, go:function(){ return { text:"The DJ shouted your name. Campus will hear about this.", log:"Partied at Club Vibes.", after:function(){ closeSheet(); endOfDay("party"); } }; }}),
+    A({k:"round", label:"Buy drinks for your friends", cost:6000, mins:60, daily:1, fx:{pop:15,vibes:10}, text:"Everyone knows your name now. Your wallet knows it too."}) ];
+  return [];
+}
+
+$("#btn-ride").addEventListener("click", function(){ if (ride) return; openRides(); });
+
 /* ===== Campus NG v2: phone, screens, loop ===== */
 function openPhone(app, arg){
   if (S.phase!=="play" || dayEnding) return;
@@ -2350,20 +2620,21 @@ $("#pscreen").addEventListener("click", function(e){
   if (b.dataset.restart){ if (!restartArm){ restartArm=true; renderPhone(); setTimeout(function(){ restartArm=false; if (phoneOpen&&phoneApp==="me") renderPhone(); },3000); return; }
     restartArm=false; var keep={ name:S.name, gender:S.gender, look:S.look, course:S.course, trait:S.trait, muted:S.muted, uni:S.uni }; S=fresh(); Object.assign(S,keep); closePhone(); goLanding(); return; }
   if (b.dataset.walk){ closePhone(); var P=PLACE[b.dataset.walk]; routeTo(P.door[0],P.door[1]); toast("🚶 Walking to "+esc(P.name)+". Use the joystick to stop."); return; }
+  if (b.dataset.rideto){ openRides(b.dataset.rideto); return; }
   if (b.dataset.keke){ var P2=PLACE[b.dataset.keke]; if (S.cash<200) return; var d=apply({cash:-200},"Keke ride"); teleport(P2.id); passTime(10); save(); closePhone(); toast("🛺 The keke dropped you at "+esc(P2.name)+".", d); return; }
 });
 $("#pscreen").addEventListener("keydown", function(e){ if (e.key==="Enter" && e.target.id==="live-in"){ say(e.target.value); e.target.value=""; } });
 
 /* map */
-var mapSel=null, MAPC={ senate:"#E8E3D6", library:"#EDE6D6", lt:"#E8D2A8", cafe:"#F6C9BE", sub:"#E9E2C8", jaja:"#BFD0F5", moremi:"#F5C6DA", health:"#D5F0DF", lake:"#3F8FC0", sports:"#5FA548", joint:"#3A2D5C", chapel:"#F2E6E6", mosque:"#CDEBD8" };
-function mapXf(w,h){ var s=Math.min(w/124,h/130); return { s:s, ox:w/2, oy:h/2 }; }
+var mapSel=null, MAPC={ gate:"#C9C2B2", motorpark:"#8C8B84", minimart:"#F4F4F4", cyber:"#CFE6FF", lodges:"#E8C547", market:"#F2C230", buka:"#F6E7C8", club:"#1C1530", senate:"#E8E3D6", library:"#EDE6D6", lt:"#E8D2A8", cafe:"#F6C9BE", sub:"#E9E2C8", jaja:"#BFD0F5", moremi:"#F5C6DA", health:"#D5F0DF", lake:"#3F8FC0", sports:"#5FA548", joint:"#3A2D5C", chapel:"#F2E6E6", mosque:"#CDEBD8" };
+function mapXf(w,h){ var s=Math.min(w/124,h/218); return { s:s, ox:w/2, oy:h/2-44*s }; }
 function drawMap(){
   var cv=$("#mapcv"); if (!cv) return;
-  var w=cv.clientWidth||300, h=Math.round(w*1.05), dpr=Math.min(window.devicePixelRatio||1,2);
+  var w=cv.clientWidth||300, h=Math.round(w*1.75), dpr=Math.min(window.devicePixelRatio||1,2);
   cv.style.height=h+"px"; cv.width=w*dpr; cv.height=h*dpr;
   var g=cv.getContext("2d"); g.setTransform(dpr,0,0,dpr,0,0);
   var T=mapXf(w,h); function X(x){ return T.ox+x*T.s; } function Z(z){ return T.oy+z*T.s; }
-  g.fillStyle="#7CB85A"; g.fillRect(0,0,w,h);
+  g.fillStyle="#7CB85A"; g.fillRect(0,0,w,h); g.fillStyle="#9CB063"; g.fillRect(X(-60),Z(63.3),120*T.s,(152-63.3)*T.s);
   g.fillStyle="#B5653A"; ROADS.forEach(function(r){ var a=RW/2+1.6; g.fillRect(X(Math.min(r.x0,r.x1)-a),Z(Math.min(r.z0,r.z1)-a),(Math.abs(r.x1-r.x0)+2*a)*T.s,(Math.abs(r.z1-r.z0)+2*a)*T.s); });
   g.fillStyle="#4A4D55"; ROADS.forEach(function(r){ var a=RW/2; g.fillRect(X(Math.min(r.x0,r.x1)-a),Z(Math.min(r.z0,r.z1)-a),(Math.abs(r.x1-r.x0)+2*a)*T.s,(Math.abs(r.z1-r.z0)+2*a)*T.s); });
   g.font="700 10px "+getComputedStyle(document.body).fontFamily; g.textAlign="center"; g.textBaseline="middle";
@@ -2383,7 +2654,7 @@ function drawMap(){
   g.save(); g.translate(X(S.x),Z(S.z)); g.rotate(-S.yaw+Math.PI); g.fillStyle="#2347C5"; g.strokeStyle="#fff"; g.lineWidth=2;
   g.beginPath(); g.moveTo(0,-8); g.lineTo(6,6); g.lineTo(0,3); g.lineTo(-6,6); g.closePath(); g.fill(); g.stroke(); g.restore();
   var card=$("#mapcard");
-  if (mapSel){ var P=PLACE[mapSel]; card.innerHTML='<div class="mapcard"><b>'+esc(P.name)+'</b><div class="row"><button type="button" data-walk="'+P.id+'">Walk there</button><button type="button" class="alt" data-keke="'+P.id+'"'+(S.cash<200?" disabled":"")+'>🛺 Keke, ₦200</button></div></div>'; }
+  if (mapSel){ var P=PLACE[mapSel]; card.innerHTML='<div class="mapcard"><b>'+esc(P.name)+'</b><div class="row"><button type="button" data-walk="'+P.id+'">Walk there</button><button type="button" class="alt" data-rideto="'+P.id+'">🛺 Get a ride</button></div></div>'; }
   else card.innerHTML='<div class="mapcard"><span style="color:var(--muted);font-size:14px">You are the blue arrow. Purple dots are other players.</span></div>';
   cv.onclick=function(ev){
     var r=cv.getBoundingClientRect(), wx=(ev.clientX-r.left-T.ox)/T.s, wz=(ev.clientY-r.top-T.oy)/T.s, best=null, bd=9;
@@ -2522,7 +2793,7 @@ function loop(t){
   var dt=Math.min(0.05,(t-last)/1000||0); last=t;
   if (document.hidden) return;
   if (S.phase==="play"){
-    if (!uiBusy()){ updatePlayer(dt); passTime(dt*2); }
+    if (!uiBusy()){ if (ride) updateRide(dt); else if (driving) updateDrive(dt); else updatePlayer(dt); passTime(dt*2); }
     else { pAmp=Math.max(0,pAmp-dt*5); moving=false; }
     hudT+=dt; if (hudT>0.25){ hudT=0; renderHUD(); }
     actT+=dt; if (actT>0.15){ actT=0; updateActs(); sendPresence(false); }
@@ -2537,12 +2808,12 @@ function loop(t){
   var cv=$("#gl");
   glOk = GLX.init(cv);
   if (glOk){
-    try { worldMesh=buildWorld(); kekeMesh=buildKeke(); busMesh=buildBus(); }
+    try { worldMesh=buildWorld(); kekeMesh=buildKeke(); busMesh=buildBus(); danfoMesh=buildDanfo(); okadaMesh=buildOkada(); carMesh=buildCar(); }
     catch(e){ glOk=false; }
   }
   if (!glOk){ var d=document.createElement("div"); d.className="nogl"; d.textContent="This device couldn't start the 3D campus. Try another browser or update your phone."; document.body.appendChild(d); }
   if (!UNI_BY[S.uni]) S.uni="unilag"; applyUni();
-  makeNpcs(); makeInsideNpcs();
+  makeNpcs(); makeInsideNpcs(); makeTownNpcs();
   window.addEventListener("resize", function(){ if (phoneOpen && phoneApp==="map") drawMap(); });
   document.addEventListener("visibilitychange", function(){ if (!document.hidden) last=performance.now(); });
   if (S.phase==="play" || S.phase==="result" || S.phase==="create") { S.phase=S.phase==="create"?"landing":S.phase; }
