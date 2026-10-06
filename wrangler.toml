@@ -1,0 +1,15 @@
+name = "campus-ng"
+main = "worker.js"
+compatibility_date = "2025-09-01"
+
+rules = [
+  { type = "Text", globs = ["**/*.html"], fallthrough = true }
+]
+
+[[durable_objects.bindings]]
+name = "ROOMS"
+class_name = "CampusRoom"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["CampusRoom"]
