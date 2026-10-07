@@ -67,7 +67,7 @@ input{font:inherit;-webkit-user-select:text;user-select:text}
 .clock{padding:7px 10px 8px;min-width:0}
 .clock .t{font-weight:800;font-size:22px;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums}
 .clock .d{font-size:12px;font-weight:600;color:var(--muted);margin-top:2px;white-space:nowrap}
-.needs{display:grid;grid-template-columns:repeat(4,auto);gap:6px;margin-top:6px}
+.needs{display:grid;grid-template-columns:repeat(3,auto);gap:6px;margin-top:6px}
 .need{display:flex;align-items:center;gap:3px;font-size:12px}
 .need i{font-style:normal;font-size:13px;line-height:1}
 .need .bar{width:28px;height:5px;border-radius:3px;background:var(--line);overflow:hidden}
@@ -85,17 +85,22 @@ input{font:inherit;-webkit-user-select:text;user-select:text}
 
 #joy{position:fixed;left:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);width:124px;height:124px;border-radius:50%;background:rgba(255,255,255,.22);box-shadow:inset 0 0 0 2px rgba(255,255,255,.55);z-index:10;touch-action:none}
 #joy-k{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;background:rgba(255,255,255,.92);box-shadow:0 4px 12px -4px rgba(0,0,0,.6);pointer-events:none}
-.acts{position:fixed;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);left:156px;display:flex;flex-direction:column;align-items:flex-end;gap:8px;z-index:10;pointer-events:none}
+.acts{position:fixed;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 86px);left:12px;display:flex;flex-direction:column;align-items:flex-end;gap:8px;z-index:10;pointer-events:none}
 .act{pointer-events:auto;border:0;border-radius:16px;background:var(--btn);color:#fff;font-weight:800;font-size:16px;padding:13px 16px;box-shadow:0 8px 20px -8px rgba(0,0,0,.6);max-width:100%;text-align:right;line-height:1.2}
 .act.alt{background:var(--hud);color:var(--hud-text)}
 
+.bnav{position:fixed;left:8px;right:8px;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);z-index:12;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:6px;border-radius:20px;background:var(--hud);box-shadow:0 10px 24px -10px rgba(0,0,0,.6);max-width:520px;margin:0 auto}
+.bnav button{position:relative;border:0;background:none;border-radius:14px;padding:6px 0 5px;display:flex;flex-direction:column;align-items:center;gap:1px;font-size:12px;font-weight:700;color:var(--hud-text)}
+.bnav button span{font-size:21px;line-height:1.1}
+.bnav button:active{background:var(--sel)}
+.bnav .badge{top:0;right:calc(50% - 26px);font-style:normal}
 .toasts{position:fixed;top:calc(env(safe-area-inset-top,0px) + 112px);left:10px;right:70px;display:flex;flex-direction:column;gap:6px;z-index:30;pointer-events:none}
 .toast{pointer-events:auto;background:var(--hud);color:var(--hud-text);border-radius:12px;padding:7px 10px;box-shadow:0 8px 20px -8px rgba(0,0,0,.6);font-size:13px;line-height:1.3;animation:tin .25s ease-out;max-width:340px}
 .toast b{font-weight:800}
 .toast .pills{margin:6px 0 0}
 @keyframes tin{from{transform:translateY(-8px);opacity:0}to{transform:none;opacity:1}}
 
-#saybar{position:fixed;left:8px;right:8px;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);z-index:35;display:flex;flex-direction:column;gap:6px}
+#saybar{position:fixed;left:8px;right:8px;bottom:calc(env(safe-area-inset-bottom,0px) + 82px);z-index:35;display:flex;flex-direction:column;gap:6px}
 .emotes{display:flex;gap:6px}
 .emotes button{border:0;background:var(--hud);border-radius:12px;font-size:20px;width:44px;height:40px;box-shadow:0 6px 14px -8px rgba(0,0,0,.6)}
 .sayrow{display:flex;gap:6px;background:var(--hud);padding:6px;border-radius:16px;box-shadow:0 8px 20px -8px rgba(0,0,0,.6)}
@@ -297,11 +302,16 @@ td.g{font-weight:800;text-align:center;font-size:15px} th.g{text-align:center} t
   </div>
 </div>
 <div class="fabs" id="fabs" hidden>
-  <button class="fab" id="btn-phone" type="button" aria-label="Open phone">📱<span class="badge" id="ph-badge" hidden>0</span></button>
-  <button class="fab" id="btn-map" type="button" aria-label="Campus map">🗺️</button>
-  <button class="fab" id="btn-ride" type="button" aria-label="Get a ride">🛺</button>
+  <button class="fab" id="btn-ride" hidden type="button" aria-label="Get a ride">🛺</button>
   <button class="fab" id="btn-say" type="button" aria-label="Say something">💬</button>
 </div>
+<nav class="bnav" id="bnav" hidden>
+  <button type="button" id="nav-home"><span>🏠</span>Home</button>
+  <button type="button" id="nav-buy"><span>🛋️</span>Buy</button>
+  <button type="button" id="nav-campus"><span>🏫</span>Campus</button>
+  <button type="button" id="btn-map" hidden>Map</button>
+  <button type="button" id="btn-phone"><span>📱</span>Phone<i class="badge" id="ph-badge" hidden>0</i></button>
+</nav>
 <div id="joy" hidden><div id="joy-k"></div></div>
 <div class="acts" id="acts"></div>
 <div class="toasts" id="toasts" aria-live="polite"></div>
@@ -315,11 +325,11 @@ td.g{font-weight:800;text-align:center;font-size:15px} th.g{text-align:center} t
   <div class="paper letter">
     <div class="lh">
       <svg class="crest"><use href="#crest"/></svg>
-      <div><div class="uni">University of Lagos</div><div class="office">Office of the Registrar</div></div>
+      <div><div class="uni">Atlantic University</div><div class="office">Office of the Registrar</div></div>
     </div>
     <hr class="rule2">
     <h1 class="big">Can you survive 100 Level and still pass?</h1>
-    <p>Welcome to UNILAG. The birth lottery decides if you arrive as a Nepo student with rich parents, or a LAPO student counting every naira. Then you have 14 days of lectures, jobs and Lagos life before exams.</p>
+    <p>Live your first semester at a Nigerian university. The birth lottery decides if you arrive as a Nepo student with rich parents or a LAPO student counting every naira. Then manage your needs, money, friends, hustle and GPA for 14 days before exams.</p>
     <p class="sign">B. Adeyemi</p>
     <p class="signrole">Registrar</p>
     <div id="acct" hidden></div>
@@ -349,7 +359,8 @@ td.g{font-weight:800;text-align:center;font-size:15px} th.g{text-align:center} t
 <section class="ov" id="s-result" hidden>
   <div class="paper slip" id="slip"></div>
   <p class="shot">Screenshot your slip and post it.</p>
-  <button class="btn" id="btn-again" type="button">Play another semester</button>
+  <button class="btn" id="btn-share" type="button">📤 Share my result card</button>
+  <button class="btn ghost" id="btn-again" type="button">Play another semester</button>
 </section>
 <script>
 (function(){
@@ -1275,7 +1286,7 @@ var EV = {}; EVENTS.forEach(function(e){ EV[e.id]=e; });
 /* ---------- State ---------- */
 function fresh(){
   return { v:2, phase:"landing", name:"", gender:"m", look:{skin:2,top:1,bot:0,hair:0,style:0}, uni:"unilag", inside:null, job:null, course:"cs", trait:"vibes",
-    day:1, min:7*60, cash:25000, energy:100, food:80, fresh:90, vibes:70, prep:0, pop:10, rep:0, attended:0,
+    day:1, min:7*60, cash:25000, energy:100, food:80, fresh:90, vibes:70, social:70, bladder:90, prep:0, pop:10, rep:0, attended:0,
     x:0, z:50, yaw:Math.PI, today:{}, flags:{}, seen:{}, home:"hostel", rentOwed:0, rentMiss:0, inv:{}, own:{}, log:[], ledger:[], chats:{}, order:[], trig:{}, muted:{}, results:null };
 }
 function load(){
@@ -1294,9 +1305,10 @@ var S = load() || fresh();
 /* ---------- Stats ---------- */
 function energyCap(){ return S.flags.sick ? 60 : 100; }
 function apply(fx, label){
+  if (fx.pop>0 && fx.social==null) fx=Object.assign({},fx,{ social:fx.pop*4 });
   var d={}, c=CRS(), b, v;
   if (fx.cash){ b=S.cash; S.cash=Math.max(0,S.cash+fx.cash); d.cash=S.cash-b; if (d.cash) ledger(d.cash, label||"Campus life"); }
-  ["energy","food","fresh","vibes"].forEach(function(k){
+  ["energy","food","fresh","vibes","social","bladder"].forEach(function(k){
     if (!fx[k]) return; b=S[k]; S[k]=clamp(S[k]+fx[k],0,k==="energy"?energyCap():100); d[k]=Math.round(S[k])-Math.round(b);
   });
   if (fx.prep){
@@ -1309,14 +1321,14 @@ function apply(fx, label){
   return d;
 }
 function ledger(amt,label){ S.ledger.unshift({ a:amt, l:label, d:S.day, m:Math.floor(S.min) }); if (S.ledger.length>60) S.ledger.length=60; }
-function studyEff(){ var o=S.own||{}; return (0.45+0.55*Math.min(S.energy,S.food)/100)*(1+(o.lamp?0.15:0)+(o.laptop?0.25:0)); }
+function studyEff(){ var o=S.own||{}; return moodFactor()*(0.45+0.55*Math.min(S.energy,S.food)/100)*(1+(o.lamp?0.15:0)+(o.laptop?0.25:0)); }
 function repLabel(r){ if (r<=-20) return "Shady"; if (r<=-6) return "Iffy"; if (r<=5) return "Neutral"; if (r<=19) return "Solid"; return "Trusted"; }
 function pillsHTML(d){
   var out=[];
   function p(t,up){ out.push('<span class="pill '+(up?"up":"down")+'">'+t+"</span>"); }
   function sg(n){ return (n>0?"+":"\u2212")+Math.abs(n); }
   if (d.cash) p((d.cash>0?"+":"\u2212")+fmt(Math.abs(d.cash)), d.cash>0);
-  [["energy","energy"],["food","food"],["fresh","freshness"],["vibes","vibes"],["prep","readiness"],["pop","popularity"],["rep","reputation"]].forEach(function(k){
+  [["energy","energy"],["food","hunger"],["fresh","hygiene"],["vibes","fun"],["social","social"],["bladder","bladder"],["prep","readiness"],["pop","popularity"],["rep","reputation"]].forEach(function(k){
     if (d[k[0]]) p(sg(d[k[0]])+" "+k[1], d[k[0]]>0);
   });
   return out.length ? '<div class="pills">'+out.join("")+"</div>" : "";
@@ -1479,6 +1491,7 @@ function placeActions(id){
       acts.push(A({k:"matric", label:"Attend matriculation", mins:90, hot:1, fx:{rep:4,pop:3,vibes:12}, go:function(s){ s.flags.matricDone=1; return { text:"You took the matriculation oath in your white shirt. You're officially a student!", log:"Matriculated in white 🎓" }; }}));
     if (S.flags.extra===S.day && h>=6.75 && h<8.5)
       acts.push(A({k:"extra", label:"Attend the Saturday extra class", mins:120, hot:1, daily:1, fx:{prep:8,rep:2}, study:1, text:"Only twelve people came. The lecturer noticed you."}));
+    acts.push(A({k:"gistlt", label:"Gist with coursemates", mins:30, fx:{social:20,vibes:8,pop:1}, text:"Who failed the last test, who is dating who, and when the next strike is coming."}));
     acts.push(A({k:"empty", label:"Read in an empty hall", mins:60, fx:{prep:4,energy:-5}, study:1, text:"Echoes, mosquitoes and surprisingly good focus."}));
   }
   else if (id==="cafe") acts=[
@@ -1533,6 +1546,7 @@ function placeActions(id){
     A({k:"alloc", label:"Ask about hostel allocation", mins:30, fx:{vibes:-3}, text:"They said come back tomorrow. They'll say that tomorrow too."}) ];
   var J=S.job && JOB_BY[S.job.id];
   if (J && jobPlace(J)===id){ var sa=jobShiftAction(); if (sa) acts.unshift(sa); }
+  if (TOILETS.indexOf(id)>=0 && !(PLACE[id].hostel && PLACE[id].hostel!==S.gender)) acts.push(toiletAction());
   return acts;
 }
 function blockReason(a){
@@ -1580,7 +1594,7 @@ function renderPlace(){
   var P=PLACE[curPlace], open=isOpen(P);
   var k = P.hours[0]===0 && P.hours[1]===24 ? "Open all day" : (open ? "Open till "+hr(Math.min(P.hours[1],24)*60) : "Closed. Opens at "+hr(P.hours[0]*60));
   var h='<p class="sh-k">'+esc(k)+'</p><h2 class="sh-t" id="sh-t" tabindex="-1">'+esc(P.name)+'</h2><p class="sh-b">'+esc(PLACE_DESC[P.id]||P.desc||"")+"</p>";
-  h+='<div class="statline"><span>⚡ '+Math.round(S.energy)+'</span><span>🍛 '+Math.round(S.food)+'</span><span>📚 Readiness '+Math.round(S.prep)+'%</span><span>'+fmt(S.cash)+'</span><span>'+t12(S.min)+'</span></div>';
+  h+=''+presenceHTML(curPlace)+'<div class="statline"><span>⚡ '+Math.round(S.energy)+'</span><span>🍛 '+Math.round(S.food)+'</span><span>📚 Readiness '+Math.round(S.prep)+'%</span><span>'+fmt(S.cash)+'</span><span>'+t12(S.min)+'</span></div>';
   if (placeNote) h+='<p class="note">'+esc(placeNote.text)+"</p>"+pillsHTML(placeNote.d);
   if (!open){ h+='<p class="note">The doors are locked. Come back at '+hr(P.hours[0]*60)+".</p>"; }
   else {
@@ -1783,7 +1797,7 @@ function proj(x,y,z){
   if (cw<=0.2) return null; return [(cx/cw+1)/2*cssW, (1-cy/cw)/2*cssH, cw];
 }
 function tapWorld(sx,sy){
-  if (uiBusy() || ride || driving) return;
+  if (uiBusy() || ride) return;
   var best=null, bd=40;
   npcs.forEach(function(n){ var p=proj(n.x,1.3,n.z); if (p){ var d=Math.hypot(p[0]-sx,p[1]-sy); if (d<bd && Math.hypot(n.x-S.x,n.z-S.z)<30){ bd=d; best={ npc:n }; } } });
   for (var id in remotes){ var r=remotes[id], p=proj(r.x,1.3,r.z); if (p){ var d=Math.hypot(p[0]-sx,p[1]-sy); if (d<bd){ bd=d; best={ rem:r }; } } }
@@ -1792,10 +1806,11 @@ function tapWorld(sx,sy){
   var dx=camF[0]+camR[0]*nx*th*as+camU[0]*ny*th, dy=camF[1]+camR[1]*nx*th*as+camU[1]*ny*th, dz=camF[2]+camR[2]*nx*th*as+camU[2]*ny*th;
   if (dy>=-0.01) return;
   var t=-EYE[1]/dy, gx=EYE[0]+dx*t, gz=EYE[2]+dz*t;
-  if (S.inside){ autoPath=[[gx,gz]]; return; }
+  if (driving){ driveTo(gx,gz); return; }
+  if (S.inside){ autoPath=[[gx,gz]]; markTap(gx,gz); return; }
   for (var i=0;i<PLACES.length;i++){ var P=PLACES[i], b=P.box;
-    if ((b && gx>b[0]&&gx<b[2]&&gz>b[1]&&gz<b[3]) || (P.circle && Math.hypot(gx-P.circle[0],gz-P.circle[1])<P.circle[2])){ routeTo(P.door[0],P.door[1]); autoEnter=P.id; toast("🚶 Going to "+esc(P.name)+"."); return; } }
-  if (!inObst(gx,gz,0.3)) routeTo(clamp(gx,-58,58), clamp(gz,-61,61));
+    if ((b && gx>b[0]&&gx<b[2]&&gz>b[1]&&gz<b[3]) || (P.circle && Math.hypot(gx-P.circle[0],gz-P.circle[1])<P.circle[2])){ if (Math.hypot(P.door[0]-S.x,P.door[1]-S.z)<12) openPlace(P.id); else openRides(P.id); return; } }
+  if (!inObst(gx,gz,0.3) && Math.hypot(gx-S.x,gz-S.z)<18){ autoPath=[[gx,gz]]; markTap(gx,gz); }
 }
 function walkThenTalk(n){ if (Math.hypot(n.x-S.x,n.z-S.z)<3) openNpc(n); else routeTo(n.x,n.z); }
 
@@ -1829,7 +1844,7 @@ function drawScene(t){
   npcs.forEach(function(n){ if (Math.hypot(n.x-EYE[0],n.z-EYE[2])<150){ drawAvatar(n); shadows.push([n.x,n.z]); } });
   drawParkedCar(); drawFurniture();
   for (var id in remotes){ var r=remotes[id]; if (visibleRemote(r)){ if (r.v && VMESH(r.v)) drawVehicle(r.v,r.x,r.z,r.yaw,r.v==="car"?[0.7,0.72,0.76]:null); else { drawAvatar(r); shadows.push([r.x,r.z]); } } }
-  GLX.blend(true); shadows.forEach(function(s){ drawShadow(s[0],s[1],0.5); }); GLX.blend(false);
+  GLX.blend(true); shadows.forEach(function(s){ drawShadow(s[0],s[1],0.5); }); drawTapMark(); GLX.blend(false);
 }
 
 /* ---------- Labels ---------- */
@@ -1875,10 +1890,10 @@ function updateActs(){
     var bestP=null, bd=3.4;
     if (ride){ items.push({ k:"s:", t:"🛑 Get down here", alt:true }); }
     else if (driving){ items.push({ k:"q:", t:"🅿️ Park and get out" }); }
-    else if (S.car && !S.inside && (S.car.owned||S.car.day===S.day) && Math.hypot(S.car.x-S.x,S.car.z-S.z)<3.6){ items.push({ k:"c:", t:"🚗 Drive your car" }); }
     if (ride || driving) {}
     else if (S.inside){ items.push({ k:"i:"+S.inside, t:"📋 Things to do in "+PLACE[S.inside].name }); items.push({ k:"x:", t:"🚪 Go outside", alt:true }); if (S.inside===homePlace()) items.push({ k:"b:", t:"🛋️ Decorate your room", alt:true }); }
     else PLACES.forEach(function(P){ var d=Math.hypot(P.door[0]-S.x,P.door[1]-S.z); if (d<bd){ bd=d; bestP=P; } });
+    if (!ride && !driving){ var wk=workShortcut(); if (wk) items.push(wk); }
     if (bestP) items.push({ k:"p:"+bestP.id, t:(IN[bestP.id] ? "Enter " : "Go to ")+bestP.name });
     var bn=null, nd=2.8;
     npcs.forEach(function(n){ var d=Math.hypot(n.x-S.x,n.z-S.z); if (d<nd){ nd=d; bn=n; } });
@@ -1896,6 +1911,7 @@ $("#acts").addEventListener("click", function(e){
   else if (k[0]==="i") openPlace(id);
   else if (k[0]==="x") exitPlace();
   else if (k[0]==="b") openBuy();
+  else if (k[0]==="w"){ var jj=myJob(); if (jj) openRides(jobPlace(jj)); }
   else if (k[0]==="s") stopRide();
   else if (k[0]==="c"){ driving=true; carV=0; actsKey=""; sendPresence(true); }
   else if (k[0]==="q"){ driving=false; carV=0; var c=S.car; S.x=c.x+Math.cos(c.yaw)*1.8; S.z=c.z-Math.sin(c.yaw)*1.8; collide(); actsKey=""; save(); sendPresence(true); }
@@ -1923,7 +1939,7 @@ function renderNpc(){
 }
 function npcAct(k){
   var n=curNpc, r={ fx:{}, text:"", line:pick(LINES) };
-  if (k==="greet"){ r.fx={vibes:3,pop:1}; r.text="You exchanged greetings and a handshake that lasted too long."; passTime(5); }
+  if (k==="greet"){ r.fx={vibes:3,pop:1,social:8}; r.text="You exchanged greetings and a handshake that lasted too long."; passTime(5); }
   else if (k==="gist"){ S.today["gist"+n.id]=1; r.fx={vibes:12,pop:2}; r.text=pick(["You gisted about lecturers, hostel drama and who's dating who.","Thirty minutes passed like five. Good gist."]); passTime(30); }
   else if (k==="notes"){ S.today["notes"+n.id]=1; passTime(20); if (n.mate){ r.fx={prep:3*studyEff()}; r.text=n.name+" let you copy the notes. Their handwriting is beautiful."; r.line="Make you return am o!"; } else { r.text=n.name+" is in a different department. No notes for you."; r.line="I no dey your department o 😂"; } }
   else if (k==="num"){ var id="npc_"+n.name, c=chat(id); c.name=n.name; c.av=n.g==="f"?"👩🏾":"👨🏾"; incoming(id,"Hi! It's "+n.name+" 😄 Save my number o.",null,true); passTime(2); r.fx={pop:1}; r.text="You swapped numbers. Check your phone."; r.line="I go text you!"; }
@@ -1932,7 +1948,7 @@ function npcAct(k){
 var curRemote=null;
 function openRemote(r){ curRemote=r; sheetMode="remote"; var muted=!!S.muted[r.name];
   $("#sheet").innerHTML='<p class="sh-k">Another player on campus</p><h2 class="sh-t" id="sh-t" tabindex="-1">'+esc(r.name)+'</h2><p class="sh-b">This is a real person playing right now.</p><div class="choices">'+
-    '<button type="button" class="choice" data-ra="wave"><span>Wave 👋</span></button>'+
+    (r.un&&canDm()?'<button type="button" class="choice hot" data-dmto="'+esc(r.un)+'" data-dmname="'+esc(r.name)+'"><span>✉️ Send a message<span class="why">@'+esc(r.un)+'</span></span></button>':'')+'<button type="button" class="choice" data-ra="wave"><span>Wave 👋</span></button>'+
     '<button type="button" class="choice" data-ra="mute"><span>'+(muted?"Unmute their messages":"Mute their messages")+'</span></button></div><button type="button" class="btn ghost" data-close="1">Close</button>';
   openSheet(); }
 
@@ -1986,7 +2002,7 @@ function startDay(){
     incoming("cls","Welcome to "+CRS().code+" 100L! Lectures hold at 8AM and 12PM, Monday to Friday, at the Main Auditorium.","Course Rep",true);
     incoming("land","Welcome! Hostel rent is ₦1,500 a week, collected every Saturday morning. You can move to a lodge in town from the Home app.",null,true);
     deliver(EV.intro_room);
-    setTimeout(function(){ toast("Walk with the joystick. Drag the screen to look around. Tap a building to walk there."); }, 4500);
+    setTimeout(function(){ toast("Tap Campus at the bottom to go anywhere. Every trip and action takes time, so plan your day."); }, 4500);
   } else if (S.day>DAYS){
     incoming("cls","EXAMS TODAY at the Main Auditorium. Go there when you're ready. All the best! 🙏","Course Rep");
   } else {
@@ -2003,12 +2019,12 @@ var NEEDS=[["energy","⚡","Energy"],["food","🍛","Food"],["fresh","🚿","Fre
 $("#needs").innerHTML=NEEDS.map(function(n){ return '<div class="need" id="nd-'+n[0]+'" title="'+n[2]+'"><i aria-hidden="true">'+n[1]+'</i><span class="bar"><b></b></span></div>'; }).join("");
 function renderHUD(){
   $("#h-time").textContent=t12(S.min);
-  $("#h-day").textContent = S.day>DAYS ? "Exam day" : "Day "+S.day+", "+DOW[dow(S.day)];
+  var md=mood(); $("#h-day").textContent = md.e+" "+md.t+" · "+(S.day>DAYS ? "Exam day" : "Day "+S.day+", "+DOW[dow(S.day)].slice(0,3));
   $("#h-cash").textContent=fmt(S.cash);
   NEEDS.forEach(function(n){ var v=S[n[0]], el=document.getElementById("nd-"+n[0]); el.querySelector("b").style.width=Math.round(v)+"%"; el.classList.toggle("low",v<20); el.classList.toggle("mid",v>=20&&v<45); });
   updateBadge(); updateOnline();
 }
-function showHUD(on){ ["#hud","#fabs","#joy"].forEach(function(s){ $(s).hidden=!on; }); if (!on){ $("#acts").innerHTML=""; actsKey=""; $("#saybar").hidden=true; } }
+function showHUD(on){ $("#joy").hidden=true; ["#hud","#fabs","#bnav"].forEach(function(s){ $(s).hidden=!on; }); if (!on){ $("#acts").innerHTML=""; actsKey=""; $("#saybar").hidden=true; } }
 
 /* ---------- Say / live chat ---------- */
 var BAD=/\b(fuck|shit|bitch|cunt|dick|pussy|asshole|nigga|nigger|whore)\b/gi;
@@ -2062,7 +2078,7 @@ function applyPeer(id, pr){
   var nin=typeof pr.i==="string" ? pr.i.slice(0,12) : "";
   if (nin!==r.inside){ r.x=num(pr.x,-80,700,r.x); r.z=num(pr.z,-80,700,r.z); }
   r.name=cleanName(pr.n); r.tx=num(pr.x,-80,700,r.x); r.tz=num(pr.z,-80,700,r.z); r.tyaw=num(pr.r,-20,20,0); r.moving=!!pr.m; r.inGame=pr.p==="play";
-  r.uni=typeof pr.u==="string" ? pr.u.slice(0,12) : ""; r.inside=nin; r.v=typeof pr.v==="string" ? pr.v.slice(0,6) : "";
+  r.l=typeof pr.l==="string" ? pr.l.slice(0,12) : ""; r.uni=typeof pr.u==="string" ? pr.u.slice(0,12) : ""; r.inside=nin; r.v=typeof pr.v==="string" ? pr.v.slice(0,6) : ""; r.un=typeof pr.un==="string" ? pr.un.slice(0,20) : "";
   var k=Array.isArray(pr.k)?pr.k:[];
   r.look={ skin:num(k[0],0,SKINS.length-1,2)|0, top:num(k[1],0,TOPS.length-1,0)|0, bot:num(k[2],0,BOTS.length-1,0)|0, hair:num(k[3],0,HAIRS.length-1,0)|0, style:num(k[4],0,3,0)|0, g:k[5]===1?"f":"m" };
   r.cols=lookColors(r.look);
@@ -2084,7 +2100,7 @@ function sendPresence(force, extra){
   var viaRoom=room&&roomOk, viaWs=ws&&wsOk&&ws.readyState===1;
   if (!viaRoom && !viaWs) return;
   var pr={ n:cleanName(S.name||"Student"), x:Math.round(S.x*100)/100, z:Math.round(S.z*100)/100, r:Math.round(S.yaw*100)/100, m:moving?1:0,
-    v:driving?"car":(ride?ride.type:""), k:[S.look.skin|0,S.look.top|0,S.look.bot|0,S.look.hair|0,S.look.style|0,S.gender==="f"?1:0], p:S.phase==="play"?"play":"menu", u:S.uni, i:S.inside||"" };
+    v:driving?"car":(ride?ride.type:""), k:[S.look.skin|0,S.look.top|0,S.look.bot|0,S.look.hair|0,S.look.style|0,S.gender==="f"?1:0], p:S.phase==="play"?"play":"menu", u:S.uni, i:S.inside||"", l:S.phase==="play"?curLoc():"" };
   if (extra) for (var k in extra) pr[k]=extra[k];
   var js=JSON.stringify(pr);
   if (!force && js===presLast) return;
@@ -2401,14 +2417,16 @@ function connectWs(){
   if (ws && wsUni===S.uni && (ws.readyState===0 || ws.readyState===1)) return;
   if (ws){ try { ws.onclose=null; ws.close(); } catch(e){} }
   wsUni=S.uni; remotes={};
-  try { ws=new WebSocket((location.protocol==="https:"?"wss://":"ws://")+location.host+"/ws?uni="+encodeURIComponent(S.uni)+"&s="+wsShard); } catch(e){ return; }
+  try { ws=new WebSocket((location.protocol==="https:"?"wss://":"ws://")+location.host+"/ws?uni="+encodeURIComponent(S.uni)+"&s="+wsShard+(acct&&acct.token?"&token="+encodeURIComponent(acct.token):"")); } catch(e){ return; }
   ws.onopen=function(){ wsOk=true; wsRetry=0; presLast=""; sendPresence(true); updateOnline(); };
   ws.onmessage=function(ev){
     var d; try { d=JSON.parse(ev.data); } catch(e){ return; }
-    if (d.t==="hello"){ myWsId=d.id; remotes={}; (d.peers||[]).forEach(function(p){ applyPeer(p.id,p.p); }); liveLog=[]; (d.chat||[]).forEach(function(m){ liveLog.push({ n:cleanName(m.n), t:cleanText(m.s), me:m.id===myWsId }); }); }
+    if (d.t==="hello"){ fetchOfflineDms(); myWsId=d.id; remotes={}; (d.peers||[]).forEach(function(p){ applyPeer(p.id,p.p); }); liveLog=[]; (d.chat||[]).forEach(function(m){ liveLog.push({ n:cleanName(m.n), t:cleanText(m.s), me:m.id===myWsId }); }); }
     else if (d.t==="p" && d.id!==myWsId) applyPeer(d.id,d.p);
     else if (d.t==="l") delete remotes[d.id];
     else if (d.t==="c" && d.m && d.m.id!==myWsId){ var nm=cleanName(d.m.n), txt=cleanText(d.m.s); if (txt && !S.muted[nm]){ var r=remotes[d.m.id]; if (r){ r.say=txt; r.sayUntil=performance.now()+6000; } liveLog.push({ n:nm, t:txt, me:false }); if (liveLog.length>60) liveLog.shift(); } }
+    else if (d.t==="dm") receiveDm(d.m);
+    else if (d.t==="dmerr") toast("✉️ "+esc(d.error||"Message not sent."));
     else if (d.t==="full"){ wsShard++; try { ws.close(); } catch(e){} return; }
     updateOnline(); if (phoneOpen && phoneApp==="live") renderPhone();
   };
@@ -2466,8 +2484,9 @@ function updateDrive(dt){
   var c=S.car; if (!c){ driving=false; return; }
   var jy=joy.on?joy.y:0, jx=joy.on?joy.x:0;
   if (keys.KeyW||keys.ArrowUp) jy-=1; if (keys.KeyS||keys.ArrowDown) jy+=1; if (keys.KeyA||keys.ArrowLeft) jx-=1; if (keys.KeyD||keys.ArrowRight) jx+=1;
-  var thr=clamp(-jy,-1,1);
-  carV+=thr*16*dt; carV*=1-Math.min(1,dt*(Math.abs(thr)<0.1?1.4:0.25)); carV=clamp(carV,-6,19);
+  var manual=Math.abs(jx)>0.1||Math.abs(jy)>0.1; if (manual) carPath=null; var auto=!manual && carAutopilot(dt);
+  var thr=auto?0:clamp(-jy,-1,1);
+  if (!auto){ carV+=thr*16*dt; carV*=1-Math.min(1,dt*(Math.abs(thr)<0.1?1.4:0.25)); } carV=clamp(carV,-6,19);
   c.yaw-=clamp(jx,-1,1)*dt*2.0*clamp(carV/7,-1,1);
   var want=carV*dt; S.x=c.x+Math.sin(c.yaw)*want; S.z=c.z+Math.cos(c.yaw)*want; collide(1.2);
   if (Math.abs(want)>0.01 && Math.hypot(S.x-c.x,S.z-c.z)<Math.abs(want)*0.5) carV*=0.3;
@@ -2918,7 +2937,7 @@ function lect(code){ var h=0; for (var i=0;i<code.length;i++) h=(h*31+code.charC
 /* UNILAG names for the campus */
 PLACE.lake.name="Lagoon Front"; PLACE.health.name="Medical Centre"; PLACE.lt.name="Main Auditorium"; PLACE.senate.name="Senate House";
 PLACE_DESC.lake="Benches, palm trees and the breeze off the Lagos Lagoon."; PLACE_DESC.lt="The big hall. Lectures, tests, matriculation and exams happen here."; PLACE_DESC.senate="UNILAG's tallest building. If you can see it, you're not lost.";
-S.uni="unilag";
+S.uni="atlantic";
 
 /* Birth lottery: Nepo or LAPO */
 function rollBackground(){
@@ -2940,8 +2959,8 @@ function rollBackground(){
 function bgLabel(){ return S.bg==="nepo" ? "Nepo student 💎" : "LAPO student 🙏"; }
 function bgIntro(){
   return S.bg==="nepo"
-    ? "Birth lottery: you're a Nepo student. Your parents sent "+fmt(S.cash)+(S.home==="miniflat"?" and rented you a mini flat in Akoka":" and a self-contain in Akoka")+(S.car&&S.car.owned?", plus a car":"")+". Your allowance is "+fmt(S.allowance)+" every Saturday."
-    : "Birth lottery: you're a LAPO student. You arrived at UNILAG with "+fmt(S.cash)+" and a hostel bed. Every naira counts.";
+    ? "Birth lottery: you're a Nepo student. Your parents sent "+fmt(S.cash)+(S.home==="miniflat"?" and rented you a mini flat in the Student Village":" and a self-contain in the Student Village")+(S.car&&S.car.owned?", plus a car":"")+". Your allowance is "+fmt(S.allowance)+" every Saturday."
+    : "Birth lottery: you're a LAPO student. You arrived at Atlantic University with "+fmt(S.cash)+" and a hostel bed. Every naira counts.";
 }
 function payAllowance(){
   if (S.allowance>0){ var d=apply({ cash:S.allowance }, "Weekly allowance"); incoming("mum","Your weekly allowance of "+fmt(S.allowance)+" has been sent. Spend wisely ❤️",null,true); toast("💸 Allowance from home.", d); }
@@ -3020,6 +3039,75 @@ $("#sheet").addEventListener("click", function(e){
 });
 var _cs=$("#creator"); _cs.addEventListener("change", function(e){ if (e.target.id==="in-course" && COURSES[e.target.value]) S.course=e.target.value; });
 
+/* ===== Tap controls, bottom navigation, player messages ===== */
+var tapMark=null, carPath=null;
+function markTap(x,z){ tapMark={ x:x, z:z, t:performance.now() }; }
+function drawTapMark(){
+  if (!tapMark || S.phase!=="play") return;
+  if ((!autoPath && !carPath) || performance.now()-tapMark.t>30000){ tapMark=null; return; }
+  var k=0.55+0.15*Math.sin(performance.now()/180);
+  M4.set(_T); M4.tr(_T,tapMark.x,0.08,tapMark.z); M4.sc(_T,k,1,k); GLX.draw(GLX.unitDisc,_T,[1,0.85,0.2],0.55);
+}
+function driveTo(x,z){ if (!S.car) return; carPath=roadPoints(S.car.x,S.car.z,x,z); markTap(x,z); }
+function carAutopilot(dt){
+  var c=S.car; if (!carPath || !carPath.length || !c){ carPath=null; return false; }
+  var t=carPath[0], dx=t[0]-c.x, dz=t[1]-c.z, d=Math.hypot(dx,dz);
+  if (d<2.2){ carPath.shift(); if (!carPath.length){ carPath=null; carV*=0.3; toast("🚗 You've arrived."); } return true; }
+  var want=Math.atan2(dx,dz); c.yaw+=angD(want,c.yaw)*Math.min(1,dt*3);
+  var target=Math.abs(angD(want,c.yaw))>0.7 ? 6 : 13; carV+=(target-carV)*Math.min(1,dt*1.5);
+  return true;
+}
+/* bottom navigation */
+$("#nav-home").addEventListener("click", function(){
+  if (S.phase!=="play" || dayEnding) return;
+  var hp=homePlace(), P=PLACE[hp];
+  if (S.inside===hp){ openPlace(hp); return; }
+  if (Math.hypot(P.door[0]-S.x,P.door[1]-S.z)<4 && !S.inside){ enterPlace(hp); return; }
+  openRides(hp);
+});
+$("#nav-buy").addEventListener("click", function(){
+  if (S.phase!=="play" || dayEnding) return;
+  if (S.inside===homePlace()){ openBuy(); return; }
+  toast("🛋️ Buy mode works in your room. Tap Home to go there.", null, function(){ openRides(homePlace()); });
+});
+function workShortcut(){
+  var j=typeof myJob==="function" ? myJob() : null; if (!j || S.inside===jobPlace(j) || S.day<S.job.start || !isWorkday(S.day) || (S.today.shifts||0)>=2) return null;
+  var h=hourNow(); if (h<j.h[0]-1 || h>=j.h[1]) return null;
+  var P=PLACE[jobPlace(j)]; if (Math.hypot(P.door[0]-S.x,P.door[1]-S.z)<6) return null;
+  return { k:"w:", t:"💼 Go to work" };
+}
+/* player-to-player messages (needs accounts on your own server) */
+function canDm(){ return serverMode() && !!acct.token && wsOk; }
+function dmId(un){ return "u_"+un; }
+function openDm(un, name){
+  un=String(un||"").toLowerCase().replace(/[^a-z0-9_]/g,"").slice(0,20); if (!un) return;
+  var c=chat(dmId(un)); c.name=(name?cleanName(name)+" ":"")+"@"+un; c.av="👤"; bump(dmId(un)); save();
+  closeSheet(); openPhone("chat", dmId(un));
+}
+function sendDm(un, text){
+  text=cleanText(text).slice(0,300); if (!text || !canDm()) return;
+  try { ws.send(JSON.stringify({ t:"dm", to:un, s:text })); } catch(e){ return; }
+  pushMsg(dmId(un),{ me:true, t:text }); save(); if (phoneOpen) renderPhone();
+}
+function receiveDm(m){
+  if (!m || !m.from || typeof m.s!=="string") return;
+  var id=dmId(m.from), c=chat(id); c.name=cleanName(m.fromName||m.from)+" @"+m.from; c.av="👤";
+  if (S.muted[c.name]) return;
+  incoming(id, cleanText(m.s));
+}
+function fetchOfflineDms(){ if (!serverMode() || !acct.token) return; api("/api/messages").then(function(r){ (r.messages||[]).forEach(receiveDm); }).catch(function(){}); }
+$("#pscreen").addEventListener("click", function(e){
+  var b=e.target.closest("button"); if (!b) return;
+  if (b.dataset.dmsend){ var i=$("#dm-in"); sendDm(phoneArg.slice(2), i.value); i.value=""; }
+  else if (b.dataset.newdm){ var u=$("#newdm-in"); openDm(u.value); }
+});
+$("#pscreen").addEventListener("keydown", function(e){
+  if (e.key!=="Enter") return;
+  if (e.target.id==="dm-in"){ sendDm(phoneArg.slice(2), e.target.value); e.target.value=""; }
+  else if (e.target.id==="newdm-in") openDm(e.target.value);
+});
+$("#sheet").addEventListener("click", function(e){ var b=e.target.closest("button"); if (b && b.dataset.dmto) openDm(b.dataset.dmto, b.dataset.dmname); });
+
 /* ===== Campus NG v2: phone, screens, loop ===== */
 function openPhone(app, arg){
   if (S.phase!=="play" || dayEnding) return;
@@ -3045,6 +3133,7 @@ function renderPhone(){
   }
   else if (phoneApp==="chats"){
     h+=head("Chats");
+    if (canDm()) h+='<div class="compose"><input id="newdm-in" maxlength="20" placeholder="Message a player by @username" autocomplete="off" autocapitalize="off"><button type="button" data-newdm="1">Start</button></div>';
     h+='<div class="appbody clist">'+(S.order.length? S.order.map(function(id){
       var c=S.chats[id], last=c.msgs[c.msgs.length-1]; var pv=last?((last.me?"You: ":"")+last.t):"";
       return '<button type="button" data-chat="'+esc(id)+'"><span class="av">'+contactAv(id)+'</span><span class="cmeta"><b>'+esc(contactName(id))+'</b><span>'+esc(c.ev&&!last?"New message":pv)+'</span></span>'+(c.unread?'<span class="cn">'+c.unread+"</span>":(c.ev?'<span class="cn" style="background:#F28C28">!</span>':""))+"</button>";
@@ -3056,6 +3145,7 @@ function renderPhone(){
     h+='<div class="appbody" id="thread"><div class="thread">'+c.msgs.map(function(m){
       return '<div class="msg'+(m.me?" me":"")+'">'+(m.w&&!m.me?'<span class="who">'+esc(m.w)+"</span>":"")+esc(m.t)+'<span class="tm">'+t12(m.at)+"</span></div>";
     }).join("")+(typing===id?'<div class="msg sys">typing…</div>':"")+"</div></div>";
+    if (id.indexOf("u_")===0) h+=canDm()?'<div class="compose"><input id="dm-in" maxlength="300" placeholder="Message @'+esc(id.slice(2))+'" autocomplete="off"><button type="button" data-dmsend="1">Send</button></div>':'<p class="live-empty">You can message players when you are online and logged in.</p>';
     var e=c.ev && EV[c.ev];
     if (e){
       h+='<div class="replies">'+e.choices.map(function(ch,i){ var short=ch.need&&S.cash<ch.need; return '<button type="button" data-rep="'+i+'"'+(short?" disabled":"")+'><span>'+esc(ch.label)+'</span>'+(ch.need?'<span class="cost">'+(short?"Not enough cash":fmt(ch.need))+"</span>":"")+"</button>"; }).join("")+"</div>";
@@ -3170,8 +3260,8 @@ function renderCreator(){
   var L=S.look, h='<h2>'+(editingLook?"Change your look":"Create your student")+'</h2><p class="sub">'+(editingLook?"Fresh fit, same person.":"This is you on campus. Other players will see you like this.")+"</p>";
   if (!editingLook){
     h+='<div class="fld"><label class="lab" for="in-name">Your name</label><input class="input" id="in-name" maxlength="16" autocomplete="off" placeholder="Fresher" value="'+esc(S.name||"")+'"></div>';
-    h+='<div class="fld"><div class="lab">University</div><p style="margin:0;font-weight:700">University of Lagos (UNILAG), Akoka</p></div>';
-    h+='<div class="fld"><div class="lab">You are</div><div class="chips" role="radiogroup">'+opt("gender","m","Male","Jaja Hall",S.gender==="m")+opt("gender","f","Female","Moremi Hall",S.gender==="f")+"</div></div>";
+    h+='<div class="fld"><div class="lab">University</div><p style="margin:0;font-weight:700">Atlantic University (fictional)</p></div>';
+    h+='<div class="fld"><div class="lab">You are</div><div class="chips" role="radiogroup">'+opt("gender","m","Male","Unity Hall",S.gender==="m")+opt("gender","f","Female","Queen Amina Hall",S.gender==="f")+"</div></div>";
   }
   h+='<div class="fld"><div class="lab">Skin tone</div><div class="chips" role="radiogroup">'+SKINS.map(function(c,i){ return sw("skin",i,c,L.skin===i,"Skin tone "+(i+1)); }).join("")+"</div></div>";
   h+='<div class="fld"><div class="lab">Hair</div><div class="chips" role="radiogroup">'+HAIRS.map(function(n,i){ return opt("hair",i,n,"",L.hair===i); }).join("")+"</div></div>";
@@ -3207,7 +3297,7 @@ $("#btn-enter").addEventListener("click", function(){
   startSemester();
 });
 function startSemester(){
-  var keep={ name:S.name, gender:S.gender, look:S.look, course:S.course, trait:S.trait, muted:S.muted, uni:"unilag" };
+  var keep={ name:S.name, gender:S.gender, look:S.look, course:S.course, trait:S.trait, muted:S.muted, uni:"atlantic" };
   var keepOwn=S.own||{}, keepCar=(S.car&&S.car.owned)?S.car:null;
   S=fresh(); Object.assign(S,keep); S.own=keepOwn; S.car=keepCar; applyUni();
   var c=CRS(); S.pop=c.popStart; S.rep=c.repStart; S.cash=startCash(); rollBackground();
@@ -3236,7 +3326,7 @@ $("#btn-accept").addEventListener("click", function(){
 $("#btn-continue").addEventListener("click", function(){
   var saved=load(); if (!saved) return; S=saved; $("#s-landing").hidden=true;
   if (S.phase==="result"){ renderResult(false); showResult(); return; }
-  S.uni="unilag"; camYaw=S.yaw; applyUni(); showHUD(true); renderHUD(); connectWs(); sendPresence(true);
+  S.uni="atlantic"; camYaw=S.yaw; applyUni(); showHUD(true); renderHUD(); connectWs(); sendPresence(true);
 });
 
 /* ---------- Exams and result ---------- */
@@ -3263,12 +3353,13 @@ function stampText(R){
   if (g>=4.5 && S.cash<5000) return "First class, zero naira";
   if (g>=4.5 && S.pop>=50) return "The chosen one";
   if (g>=4.5) return "First class material";
-  if (S.cash>=40000 && g<2.4) return "Rich, with carryovers";
+  if (S.cash>=500000 && g<2.4) return "Rich, with carryovers";
   if (S.pop>=60 && g<2.4) return "Famous, but on probation";
   if (S.pop>=60) return "Campus celebrity";
   if (co>=3) return "Carryover collector";
   if (g<1) return "Academic probation";
-  if (S.cash>=40000) return "Hustler of the year";
+  if (myJob() && (S.job.shifts|0)>=6) return "Hustler of the year";
+  if (S.bg==="nepo" && S.cash>=1000000) return "Nepo baby, certified";
   return "Survived 100 Level";
 }
 function renderResult(animate){
@@ -3282,7 +3373,7 @@ function renderResult(animate){
     return "<tr><td><b>"+r.code+'</b><span class="t">'+esc(r.title)+'</span></td><td class="num">'+r.units+'</td><td class="num">'+r.score+'</td><td class="g'+(r.grade==="F"?" f":"")+'">'+r.grade+"</td></tr>"; }).join("")+"</tbody></table>";
   h+='<div class="gparow"><div class="gpa"><div class="lbl">GPA</div><div class="n">'+R.gpa.toFixed(2)+'</div><div class="c">'+classOf(R.gpa)+' track</div></div><div class="stamp'+(animate&&!REDUCE?" go":"")+'">'+esc(stampText(R))+"</div></div>";
   h+='<div class="mini"><div><span>Cash left</span><b>'+fmt(S.cash)+"</b></div><div><span>Carryovers</span><b>"+(co.length?co.length+" ("+co.map(function(r){ return r.code; }).join(", ")+")":"None")+"</b></div><div><span>Popularity</span><b>"+S.pop+"</b></div><div><span>Reputation</span><b>"+repLabel(S.rep)+"</b></div></div>";
-  h+='<ul class="hl">'+hl.map(function(x){ return "<li>"+esc(x)+"</li>"; }).join("")+'</ul><p class="cta-line">Can you do better? Play Campus NG.</p>';
+  h+='<ul class="hl">'+hl.map(function(x){ return "<li>"+esc(x)+"</li>"; }).join("")+'</ul><p class="cta-line">Can you survive Campus NG?</p>';
   $("#slip").innerHTML=h;
 }
 function showResult(){ S.phase="result"; showHUD(false); closeSheet(); closePhone(); $("#s-landing").hidden=true; $("#s-create").hidden=true; $("#s-result").hidden=false; $("#s-result").scrollTop=0; sendPresence(true); }
@@ -3304,6 +3395,143 @@ function loop(t){
   updateNpcs(dt); updateRemotes(dt); vehT+=dt;
   if (glOk){ drawScene(t); updateLabels(); }
 }
+
+/* ===== Refactor phase 1: Atlantic University, travel as a choice, six needs, scenes, presence ===== */
+var AU={ id:"atlantic", name:"Atlantic University", short:"AU", city:"Student Village", type:"F", diff:-1, halls:["Unity Hall","Queen Amina Hall"] };
+UNI_BY.atlantic=AU;
+function UNI(){ return AU; }
+function townName(){ return "Student Village"; }
+function applyTown(){ PLACE.motorpark.name="Village Motor Park"; PLACE.market.name="Student Village Market"; PLACE.lodges.name="Student Village Lodges"; }
+(function(){
+  var N={ lt:"Lecture Hall", library:"Main Library", cafe:"Campus Cafeteria", sub:"Student Centre", health:"Medical Centre", lake:"Lakeside Garden", senate:"Senate Building", gate:"Campus Gate" };
+  for (var k in N) PLACE[k].name=N[k];
+  PLACE_DESC.lt="Lectures, tests, matriculation and exams happen here.";
+  PLACE_DESC.senate="The tallest building on campus. If you can see it, you're not lost.";
+  PLACE_DESC.lake="Benches, palm trees and a breeze off the lake.";
+  PLACE_DESC.sub="POS stands, photocopy, a barber and every hustle on campus.";
+})();
+S.uni="atlantic";
+
+/* six needs and mood */
+var NEEDS=[["energy","⚡","Energy"],["food","🍛","Hunger"],["fresh","🚿","Hygiene"],["vibes","🎉","Fun"],["social","💬","Social"],["bladder","🚽","Bladder"]];
+$("#needs").innerHTML=NEEDS.map(function(n){ return '<div class="need" id="nd-'+n[0]+'" title="'+n[2]+'"><i aria-hidden="true">'+n[1]+'</i><span class="bar"><b></b></span></div>'; }).join("");
+function decay(m){
+  var e=0.055*(S.food<15?2:1);
+  S.energy=clamp(S.energy-e*m,0,energyCap());
+  S.food=clamp(S.food-0.1*m,0,100);
+  S.fresh=clamp(S.fresh-0.045*m*(S.flags.squat?1.3:1),0,100);
+  S.vibes=clamp(S.vibes-0.04*m,0,100);
+  S.social=clamp((S.social==null?70:S.social)-0.035*m,0,100);
+  S.bladder=clamp((S.bladder==null?90:S.bladder)-0.09*m,0,100);
+}
+function needWarnings(){
+  [["food",15,"🍛 You're very hungry. Your energy drains faster."],["energy",12,"⚡ You're exhausted. Get some sleep."],["fresh",15,"🚿 People are keeping their distance. Time for a bath."],
+   ["vibes",12,"🎉 You're bored stiff. Do something fun."],["social",12,"💬 You feel lonely. Talk to someone."],["bladder",15,"🚽 You really need a toilet. Hostels, the library, the cafeteria and the Student Centre have one."]].forEach(function(w){
+    if (S[w[0]]<w[1] && !warned[w[0]]){ warned[w[0]]=1; toast(w[2]); }
+    if (S[w[0]]>w[1]+15) warned[w[0]]=0;
+  });
+  if (S.bladder<=0){ S.bladder=100; var d=apply({fresh:-40,rep:-3,pop:-3}); toast("😳 You couldn't hold it. Everyone saw. Go and clean up.", d); }
+}
+function mood(){
+  var a=(S.energy+S.food+S.fresh+S.vibes+(S.social==null?70:S.social)+(S.bladder==null?90:S.bladder))/6;
+  if (a>=75) return { e:"😄", t:"Very happy", k:1.1 }; if (a>=55) return { e:"🙂", t:"Fine", k:1 };
+  if (a>=35) return { e:"😩", t:"Stressed", k:0.9 }; return { e:"😭", t:"Miserable", k:0.8 };
+}
+function moodFactor(){ return mood().k; }
+var TOILETS=["library","cafe","sub","lt","jaja","moremi","lodges","cyber","minimart"];
+function toiletAction(){ return A({ k:"toilet", label:"Use the toilet", mins:5, go:function(){ return Math.random()<0.2 ? { fx:{bladder:100,fresh:-5}, text:"No water to flush. You did your best." } : { fx:{bladder:100}, text:"Relief." }; } }); }
+
+/* travel is a choice: pick a place, pick how, time passes, the scene opens */
+var TRAVEL={ walk:{ n:"Walk", e:"🚶", sp:4.5 }, shuttle:{ n:"Campus shuttle", e:"🚌", sp:10, wait:5 }, keke:{ n:"Keke", e:"🛺", sp:14, wait:3 }, car:{ n:"Drive your car", e:"🚗", sp:16 } };
+function rideInfo(type, id){
+  var P=PLACE[id], T=TRAVEL[type], d=Math.hypot(P.door[0]-S.x,P.door[1]-S.z)*1.25, fare=0, why="";
+  if (type==="shuttle"){ fare=150; if (!onCampus(S.z) || !onCampus(P.door[1])) why="The shuttle only runs on campus."; }
+  if (type==="keke") fare=200+50*Math.floor(d/30);
+  if (type==="car" && !(S.car && (S.car.owned || S.car.day===S.day))) why="You don't have a car.";
+  if (!why && S.cash<fare) why="Not enough cash.";
+  return { fare:fare, mins:Math.max(3,Math.round(d/T.sp*2+(T.wait||0))), why:why };
+}
+function startRide(type, id){
+  var P=PLACE[id], I=rideInfo(type,id); if (!P || I.why) return;
+  closeSheet(); closePhone(); S.inside=null; ride=null; driving=false; autoPath=null; autoEnter=null;
+  var fx={}; if (I.fare) fx.cash=-I.fare; if (type==="walk") fx.energy=-Math.min(12,Math.round(I.mins*0.3));
+  var d=apply(fx, TRAVEL[type].n);
+  passTime(I.mins); if (dayEnding) return;
+  S.x=P.door[0]; S.z=P.door[1];
+  if (IN[id] && isOpen(P) && !(P.hostel && P.hostel!==S.gender)){ var r=IN[id]; S.inside=id; S.x=r.cx; S.z=r.cz+r.d/2-1.6; S.yaw=Math.PI; camYaw=Math.PI; }
+  if (S.car && type==="car"){ S.car.x=P.door[0]+3; S.car.z=P.door[1]; }
+  actsKey=""; save(); sendPresence(true);
+  toast(TRAVEL[type].e+" "+I.mins+" minutes later, you're at <b>"+esc(P.name)+"</b>.", hasD(d)?d:null);
+  setTimeout(function(){ if (!sheetMode && !phoneOpen && !dayEnding) openPlace(id); }, 350);
+}
+function renderRides(){
+  var h;
+  if (!rideDest){
+    var list=PLACES.filter(function(P){ return P.id!==S.inside && Math.hypot(P.door[0]-S.x,P.door[1]-S.z)>4; });
+    var grp=function(camp){ return list.filter(function(P){ return onCampus(P.door[1])===camp; }).sort(function(a,b){ return a.name<b.name?-1:1; }).map(function(P){
+      var w=rideInfo("walk",P.id), here=locCount(P.id), open=isOpen(P);
+      return '<button type="button" class="choice" data-rdest="'+P.id+'"><span>'+esc(P.name)+'<span class="why">'+(open?"":"Closed now. ")+"🚶 "+w.mins+" min walk"+(here?", 👥 "+here+" here":"")+"</span></span></button>"; }).join(""); };
+    h='<p class="sh-k">'+t12(S.min)+'</p><h2 class="sh-t" id="sh-t" tabindex="-1">Where to?</h2>'+
+      '<p class="sh-k">Campus</p><div class="choices">'+grp(true)+'</div><p class="sh-k" style="margin-top:14px">Student Village</p><div class="choices">'+grp(false)+'</div><button type="button" class="btn ghost" data-close="1">Stay here</button>';
+  } else {
+    var P=PLACE[rideDest];
+    h='<p class="sh-k">'+(isOpen(P)?"Open now":"Closed now. Opens at "+hr(P.hours[0]*60))+'</p><h2 class="sh-t" id="sh-t" tabindex="-1">'+esc(P.name)+'</h2><div class="statline"><span>'+fmt(S.cash)+'</span><span>⚡ '+Math.round(S.energy)+'</span><span>'+t12(S.min)+'</span></div><div class="choices">'+
+      ["walk","shuttle","keke","car"].map(function(t){ var I=rideInfo(t,rideDest); if (t==="car" && I.why) return "";
+        return '<button type="button" class="choice'+(I.why?"":" hot")+'" data-rtype="'+t+'"'+(I.why?" disabled":"")+'><span>'+TRAVEL[t].e+" "+TRAVEL[t].n+'<span class="why">'+(I.why?esc(I.why):I.mins+" minutes"+(t==="walk"?", uses some energy":""))+'</span></span><span class="cost">'+(I.fare?fmt(I.fare):"Free")+"</span></button>"; }).join("")+
+      '</div><button type="button" class="btn ghost" data-rback="1">Pick another place</button>';
+  }
+  $("#sheet").innerHTML=h;
+}
+function openRides(id){ if (S.phase!=="play" || dayEnding) return; closePhone(); rideDest=id||null; sheetMode="rides"; renderRides(); openSheet(); }
+$("#nav-campus").addEventListener("click", function(){ openRides(); });
+
+/* who is at each place */
+function curLoc(){ if (S.inside) return S.inside; var best="", bd=10; PLACES.forEach(function(P){ var d=Math.hypot(P.door[0]-S.x,P.door[1]-S.z); if (d<bd){ bd=d; best=P.id; } }); return best; }
+function locPlayers(id){ var out=[]; for (var k in remotes){ var r=remotes[k]; if (r.inGame && r.uni===S.uni && r.l===id) out.push(r); } return out; }
+function locCount(id){
+  var n=locPlayers(id).length, P=PLACE[id];
+  npcs.forEach(function(x){ if (x.inside===id || (!x.inside && Math.hypot(x.x-P.door[0],x.z-P.door[1])<10)) n++; });
+  return n;
+}
+function presenceHTML(id){
+  var pl=locPlayers(id), n=locCount(id);
+  var h='<p class="sh-k">👥 '+n+" "+(n===1?"person":"people")+" here"+(pl.length?", "+pl.length+" of them real player"+(pl.length>1?"s":""):"")+"</p>";
+  if (pl.length) h+=pl.slice(0,8).map(function(r){ return '<div class="tt-row"><b>'+esc(r.name)+'</b><span>'+(r.un&&canDm()?'<button type="button" class="linkbtn" data-hello="'+esc(r.un)+'">Say hello</button><button type="button" class="linkbtn" data-dmto="'+esc(r.un)+'" data-dmname="'+esc(r.name)+'">Chat</button>':"")+"</span></div>"; }).join("");
+  return h;
+}
+$("#sheet").addEventListener("click", function(e){ var b=e.target.closest("button"); if (b && b.dataset.hello){ sendDm(b.dataset.hello,"👋 Hello!"); toast("👋 Said hello to @"+esc(b.dataset.hello)+"."); } });
+
+/* shareable result card */
+function netWorth(){ var v=S.cash; for (var k in (S.own||{})) if (GOODS[k]) v+=GOODS[k].p*0.6; (S.furn||[]).forEach(function(f){ if (FURN[f.t]) v+=FURN[f.t].p*0.5; }); return Math.round(v/50)*50; }
+function relStatus(){ return S.flags.dateDone ? "It's complicated" : (S.flags.date ? "Talking stage" : "Single"); }
+function cardCanvas(){
+  var R=S.results||{ gpa:0, rows:[] }, W=1080, H=1350, cv=document.createElement("canvas"); cv.width=W; cv.height=H;
+  var g=cv.getContext("2d"), F='"Bricolage Grotesque", system-ui, sans-serif';
+  var bg=g.createLinearGradient(0,0,W,H); bg.addColorStop(0,"#0F5132"); bg.addColorStop(0.5,"#1E9E5A"); bg.addColorStop(1,"#2347C5"); g.fillStyle=bg; g.fillRect(0,0,W,H);
+  g.fillStyle="rgba(255,255,255,.96)"; g.beginPath(); if (g.roundRect) g.roundRect(60,60,W-120,H-120,48); else g.rect(60,60,W-120,H-120); g.fill();
+  g.fillStyle="#56627F"; g.font="700 34px "+F; g.fillText("MY FIRST SEMESTER AT", 120, 170);
+  g.fillStyle="#1D3270"; g.font="800 64px "+F; g.fillText("ATLANTIC UNIVERSITY", 120, 240);
+  g.fillStyle="#18203A"; g.font="600 40px "+F; g.fillText((S.name||"Fresher")+" · "+CRS().name, 120, 310);
+  g.fillStyle="#56627F"; g.font="700 34px "+F; g.fillText("GPA", 120, 410);
+  g.fillStyle="#18203A"; g.font="800 190px "+F; g.fillText((R.gpa||0).toFixed(2), 110, 580);
+  var co=(R.rows||[]).filter(function(r){ return r.grade==="F"; }).length, j=myJob();
+  var rows=[["Net worth",fmt(netWorth())],["Popularity",String(S.pop)],["Relationship",relStatus()],["Carryovers",String(co)],["Hustle",j?jobTitle():"No hustle yet"],["Background",S.bg==="nepo"?"Nepo":"LAPO"]];
+  rows.forEach(function(r,i){ var y=680+i*82; g.fillStyle="#56627F"; g.font="600 36px "+F; g.fillText(r[0],120,y); g.fillStyle="#18203A"; g.font="800 40px "+F; g.textAlign="right"; g.fillText(r[1].slice(0,26),W-120,y); g.textAlign="left"; g.fillStyle="#DCE5F5"; g.fillRect(120,y+24,W-240,3); });
+  g.fillStyle="#C9303A"; g.font="800 44px "+F; g.fillText(stampText(R).toUpperCase().slice(0,30),120,1210);
+  g.fillStyle="#2347C5"; g.font="800 40px "+F; g.fillText("Can you survive Campus NG?",120,1265);
+  g.fillStyle="#56627F"; g.font="600 30px "+F; g.textAlign="right"; g.fillText(/^https?:$/.test(location.protocol)?location.host:"",W-120,1265); g.textAlign="left";
+  return cv;
+}
+function shareCard(){
+  var cv=cardCanvas();
+  cv.toBlob(function(blob){
+    if (!blob) return;
+    var file=new File([blob],"campus-ng-result.png",{ type:"image/png" });
+    if (navigator.canShare && navigator.canShare({ files:[file] })){ navigator.share({ files:[file], text:"My first semester at Atlantic University. Can you survive Campus NG?" }).catch(function(){}); return; }
+    var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="campus-ng-result.png"; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },1000);
+  },"image/png");
+}
+$("#btn-share").addEventListener("click", shareCard);
 
 /* ---------- Boot ---------- */
 (function boot(){

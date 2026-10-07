@@ -25,7 +25,7 @@ function cleanPresence(p) {
     n: cleanText(p.n, 16) || "Student",
     x: num(p.x, -80, 700, 0), z: num(p.z, -80, 700, 0), r: num(p.r, -20, 20, 0),
     m: p.m ? 1 : 0, k, p: p.p === "play" ? "play" : "menu",
-    u: cleanText(p.u, 12), i: cleanText(p.i, 12), v: ["car","keke","okada","danfo"].includes(p.v) ? p.v : ""
+    u: cleanText(p.u, 12), i: cleanText(p.i, 12), l: cleanText(p.l, 12), v: ["car","keke","okada","danfo"].includes(p.v) ? p.v : ""
   };
 }
 
@@ -37,6 +37,7 @@ async function initDb(env) {
   await env.DB.batch([
     env.DB.prepare("CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, username TEXT UNIQUE COLLATE NOCASE, pass TEXT, salt TEXT, created INTEGER)"),
     env.DB.prepare("CREATE TABLE IF NOT EXISTS sessions (token TEXT PRIMARY KEY, user_id TEXT, created INTEGER)"),
+    env.DB.prepare("CREATE TABLE IF NOT EXISTS messages (id INTEGER PRIMARY KEY AUTOINCREMENT, to_user TEXT, from_user TEXT, from_name TEXT, text TEXT, at INTEGER, delivered INTEGER)"),
     env.DB.prepare("CREATE TABLE IF NOT EXISTS saves (user_id TEXT PRIMARY KEY, data TEXT, name TEXT, uni TEXT, cash INTEGER, gpa REAL, pop INTEGER, updated INTEGER)")
   ]);
   dbReady = true;
@@ -103,6 +104,13 @@ async function handleApi(request, env, url) {
   const userId = await userFromToken(request, env);
   if (!userId) return json({ error: "Please log in again." }, 401);
   if (path === "/api/logout") { await env.DB.prepare("DELETE FROM sessions WHERE token = ?").bind((request.headers.get("authorization") || "").slice(7)).run(); return json({ ok: true }); }
+  if (path === "/api/messages") {
+    const u = await env.DB.prepare("SELECT username FROM users WHERE id = ?").bind(userId).first();
+    if (!u) return json({ messages: [] });
+    const r = await env.DB.prepare("SELECT from_user, from_name, text, at FROM messages WHERE to_user = ? AND delivered = 0 ORDER BY id LIMIT 100").bind(u.username).all();
+    await env.DB.prepare("UPDATE messages SET delivered = 1 WHERE to_user = ? AND delivered = 0").bind(u.username).run();
+    return json({ messages: r.results.map(m => ({ from: m.from_user, fromName: m.from_name, s: m.text, at: m.at })) });
+  }
   if (path === "/api/save" && request.method === "GET") {
     const save = await env.DB.prepare("SELECT data FROM saves WHERE user_id = ?").bind(userId).first();
     return json({ data: save ? JSON.parse(save.data) : null });
@@ -130,10 +138,16 @@ export default {
     }
     if (url.pathname === "/ws") {
       if (request.headers.get("Upgrade") !== "websocket") return new Response("Expected a WebSocket", { status: 426 });
-      const uni = (url.searchParams.get("uni") || "unilag").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 12) || "unilag";
+      const uni = (url.searchParams.get("uni") || "atlantic").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 12) || "unilag";
       const shard = Math.max(1, Math.min(200, parseInt(url.searchParams.get("s") || "1", 10) || 1));
       const stub = env.ROOMS.get(env.ROOMS.idFromName(uni + ":" + shard));
-      return stub.fetch(request);
+      let verified = "";
+      const tok = url.searchParams.get("token");
+      if (tok && env.DB && /^[A-Za-z0-9-]{20,80}$/.test(tok)) {
+        try { await initDb(env); const row = await env.DB.prepare("SELECT u.username FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token = ?").bind(tok).first(); if (row) verified = row.username; } catch {}
+      }
+      const fwd = new URL(request.url); fwd.searchParams.delete("token"); fwd.searchParams.delete("vu"); fwd.searchParams.set("vu", verified);
+      return stub.fetch(new Request(fwd.toString(), request));
     }
     if (url.pathname === "/" || url.pathname === "/index.html") {
       return new Response(GAME_HTML, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-cache" } });
@@ -154,7 +168,8 @@ export class CampusRoom extends DurableObject {
       return new Response(null, { status: 101, webSocket: client });
     }
     const id = crypto.randomUUID().slice(0, 8);
-    server.serializeAttachment({ id, p: null, last: 0, chatAt: 0 });
+    const un = (new URL(request.url).searchParams.get("vu") || "").slice(0, 20);
+    server.serializeAttachment({ id, un, p: null, last: 0, chatAt: 0, dmAt: 0 });
     const peers = [];
     for (const ws of sockets) {
       const a = ws.deserializeAttachment();
@@ -173,8 +188,21 @@ export class CampusRoom extends DurableObject {
     if (d.t === "p") {
       if (now - a.last < 90) return;
       const p = cleanPresence(d.p); if (!p) return;
-      a.p = p; a.last = now; ws.serializeAttachment(a);
+      p.un = a.un || ""; a.p = p; a.last = now; ws.serializeAttachment(a);
       this.broadcast({ t: "p", id: a.id, p }, ws);
+    } else if (d.t === "dm") {
+      if (!a.un) return ws.send(JSON.stringify({ t: "dmerr", error: "Log in to send messages." }));
+      if (now - (a.dmAt || 0) < 700) return;
+      const to = String(d.to || "").toLowerCase().replace(/[^a-z0-9_]/g, "").slice(0, 20), s = cleanText(d.s, 300);
+      if (!to || !s || to === a.un) return;
+      a.dmAt = now; ws.serializeAttachment(a);
+      await initDb(this.env);
+      const exists = await this.env.DB.prepare("SELECT id FROM users WHERE username = ?").bind(to).first();
+      if (!exists) return ws.send(JSON.stringify({ t: "dmerr", error: "No player called @" + to + "." }));
+      const m = { from: a.un, fromName: (a.p && a.p.n) || a.un, s, at: now };
+      let delivered = 0;
+      for (const w of this.ctx.getWebSockets()) { const b = w.deserializeAttachment(); if (b && b.un === to) { try { w.send(JSON.stringify({ t: "dm", m })); delivered = 1; } catch {} } }
+      await this.env.DB.prepare("INSERT INTO messages (to_user, from_user, from_name, text, at, delivered) VALUES (?, ?, ?, ?, ?, ?)").bind(to, a.un, m.fromName, s, now, delivered).run();
     } else if (d.t === "c") {
       if (now - a.chatAt < 1200) return;
       const s = cleanText(d.s, 80); if (!s) return;
